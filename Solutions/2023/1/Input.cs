@@ -1,14 +1,8 @@
-﻿namespace ConsoleApp;
+namespace Advent_of_Code._2023._1;
 
-public enum Level
-{
-    PartOne = 1,
-    PartTwo = 2,
-}
 public static class Input
 {
-    
-    public const string input_2023_01 = @"2qlljdqcbeight
+    public const string _2023_1 = @"2qlljdqcbeight
 eight47srvbfive
 slconeightfoureight557m38
 xvqeightwosixnine61eightsn2tdczfhx

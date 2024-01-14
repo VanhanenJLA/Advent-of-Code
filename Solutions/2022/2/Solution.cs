@@ -1,15 +1,11 @@
+using Common;
+
 namespace Advent_of_Code._2022._02;
 
-public class Solution : SolutionBase, ISolution
+public class Solution
 {
-    public string SolvePartOne(string input)
+    public string Solve(string input, Level level)
     {
         throw new NotImplementedException();
     }
-
-    public string SolvePartTwo(string input)
-    {
-        throw new NotImplementedException();
-    }
-    
 }

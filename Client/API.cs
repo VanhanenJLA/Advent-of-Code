@@ -2,11 +2,8 @@
 
 public class API
 {
-    // TODO: Cookie enviin
-    const string sessionCookie =
-        "session=53616c7465645f5f8a575550166e5b698824a3cc45cf66183db6b9dc6de7d6e209d2cef4e9347314cdf192ad02999e6b4ab52bb8c64133641f02da3534187df8";
-
-    static readonly HttpClient client = new() { DefaultRequestHeaders = { { "Cookie", sessionCookie } } };
+    
+    static readonly HttpClient client = new() { DefaultRequestHeaders = { { "Cookie", File.ReadAllText(GetCookieFilePath()) } } };
 
     public static async Task<string> GetInput((int year, int day) options) => await Get(options, true);
 
@@ -40,10 +37,4 @@ public class API
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsStringAsync();
     }
-}
-
-public enum Level
-{
-    PuzzlePartOne = 1,
-    PuzzlePartTwo = 2
 }

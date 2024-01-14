@@ -1,15 +1,33 @@
-namespace Advent_of_Code._2022._01;
+using Common;
 
-public class Solution : SolutionBase, ISolution
+namespace Advent_of_Code._2022._1;
+
+public class Tests : TestBase
 {
-    public string SolvePartOne(string input)
+    // Part One
+    [Theory]
+    [InlineData("1000\n2000\n3000\n\n4000\n\n5000\n6000\n\n7000\n8000\n9000\n\n10000", "24000", Level.PartOne)]
+    // [InlineData(Input._2022_1, "", Level.PartOne)]
+    public override void Should_give_correct_answer(string input, string expected, Level level)
     {
-        throw new NotImplementedException();
+        var answer = Solution.Solve(input, level);
+        Assert.Equal(expected, answer);
     }
+}
 
-    public string SolvePartTwo(string input)
+public static class Solution
+{
+    public static string Solve(string input, Level level)
     {
-        throw new NotImplementedException();
+        var groups = input.Split("\n\n");
+        var calories = groups
+            .Select(group =>
+                {
+                    var calories = group.Split("\n");
+                    var numbers = calories.Select(int.Parse);
+                    return numbers.Sum();
+                }
+            );
+        return calories.Max().ToString();
     }
-    
 }

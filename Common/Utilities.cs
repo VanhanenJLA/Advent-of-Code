@@ -1,7 +1,7 @@
 using System.Diagnostics;
-using HtmlAgilityPack;
+using static Common.Constants;
 
-namespace Advent_of_Code;
+namespace Common;
 
 public static class Utilities
 {
@@ -21,7 +21,7 @@ public static class Utilities
         static string GetSolutionFilePath()
         {
             var stackTrace = new StackTrace(true);
-            // ReSharper disable ReplaceWithSingleCallToFirstOrDefault
+            // ReSharper disable once ReplaceWithSingleCallToFirstOrDefault
             var solutionFrame = stackTrace
                 .GetFrames()
                 .Select(frame => frame.GetFileName())
@@ -36,74 +36,49 @@ public static class Utilities
     }
 
     public static string GetSourceRootDirectory()
-        => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "..");
+        => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..");
     // TODO: Enumerable.Repeat("..", 5)
     
     public static string GetSolutionsProjectRootDirectory()
         => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "Solutions");
     
-    public static void ParseAndSaveInstructions(string content, (int year, int day) options)
+    public static string GetCookieFilePath() 
+        => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "Client", CookieFilename);
+    public static string GetInputClassTemplatePath() 
+        => Path.Combine(GetSourceRootDirectory(), "Client", InputClassTemplateName);
+    
+    public static string LoadInput((int year, int day, InputFile.Type type) options)
+        => File.ReadAllText(GetInputFilePath(options));
+
+    public static string GetInputFilePath((int year, int day, InputFile.Type type) options)
     {
-        var doc = new HtmlDocument();
-        doc.LoadHtml(content);
-        var articleNode = doc.DocumentNode.SelectSingleNode("//article[@class='day-desc']");
-
-        var template = new HtmlDocument();
-        template.Load(GetInstructionsTemplateFilePath());
-
-        template
-            .DocumentNode
-            .SelectSingleNode("//body")
-            .AppendChild(articleNode);
-
-        File.WriteAllText(GetInstructionsFilePath(options), template.DocumentNode.OuterHtml);
-    }
-
-    public static void SaveInput(string input, (int year, int day) options) 
-        => File.WriteAllText(GetInputFilePath(options), input);
-
-    public static string GetInputFilePath((int year, int day) options)
-    {
-        var (year, day) = options;
+        var (year, day, type) = options;
         var dir = GetSolutionsProjectRootDirectory();
-        return Path.Combine(dir, $"{year}/{day}/input.txt");
+        var filename = InputFile.GetFilename(type);
+        return Path.Combine(dir, $"{year}/{day}/{filename}");
     }
     
     public static string GetInstructionsFilePath((int year, int day) options)
     {
         var (year, day) = options;
-        return Path.Combine(GetSolutionsProjectRootDirectory(), $"{year}/{day}/input.txt");
-    }   
-    
+        return Path.Combine(GetSolutionsProjectRootDirectory(), $"{year}/{day}/{InstructionsFilename}");
+    }
+
     public static string GetInstructionsTemplateFilePath() 
-        => Path.Combine(GetSolutionsProjectRootDirectory(), "instructions_template.html");
+        => Path.Combine(GetSolutionsProjectRootDirectory(), InstructionsTemplateName);
 }
 
-public class SolutionBase
-{
-    readonly string year;
-    readonly string day;
-
-    protected SolutionBase()
+public static class InputFile {
+    public enum Type
     {
-        var (year, day) = Utilities.GetYearAndDay();
-        this.year = year;
-        this.day = day;
+        Text,
+        Class
     }
 
-    public void Deconstruct(out int year, out int day)
+    public static string GetFilename(Type t) => t switch
     {
-        year = Convert.ToInt32(this.year);
-        day = Convert.ToInt32(this.day);
-    }
+        Type.Text => "input.txt",
+        Type.Class => "Input.cs",
+        _ => throw new ArgumentException("Unknown input file type: " + t)
+    };
 }
-
-public interface ISolution
-{
-    string SolvePartOne(string input);
-    string SolvePartTwo(string input);
-    
-    void Deconstruct(out int year, out int day);
-    
-}
-
