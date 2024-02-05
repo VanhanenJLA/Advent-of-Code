@@ -1,6 +1,0 @@
-namespace Advent_of_Code._¤YEAR¤._¤DAY¤;
-
-public static class Input
-{
-    public const string _¤YEAR¤_¤DAY¤ = @"¤INPUT¤";
-}
