@@ -4,20 +4,20 @@ namespace Advent_of_Code._2022._1;
 
 public class Tests : TestBase
 {
-    // Part One
     [Theory]
     [InlineData("1000\n2000\n3000\n\n4000\n\n5000\n6000\n\n7000\n8000\n9000\n\n10000", "24000", Level.PartOne)]
-    // [InlineData(Input._2022_1, "", Level.PartOne)]
-    public override void Should_give_correct_answer(string input, string expected, Level level)
+    [InlineData("1000\n2000\n3000\n\n4000\n\n5000\n6000\n\n7000\n8000\n9000\n\n10000", "45000", Level.PartTwo)]
+    [InlineData(null, "69693", Level.PartOne)]
+    [InlineData(null, "200945", Level.PartTwo)]
+    public override void Should_solve_correct_answer(string? input, string expected, Level level)
     {
-        var answer = Solution.Solve(input, level);
-        Assert.Equal(expected, answer);
+        DefaultTest(input, expected, level);
     }
 }
 
-public static class Solution
+public class Solution : ISolution
 {
-    public static string Solve(string input, Level level)
+    public string Solve(string input, Level level)
     {
         var groups = input.Split("\n\n");
         var calories = groups
@@ -28,6 +28,14 @@ public static class Solution
                     return numbers.Sum();
                 }
             );
-        return calories.Max().ToString();
+
+        if (level == Level.PartOne)
+            return calories.Max().ToString();
+
+        return calories
+            .OrderByDescending(c => c)
+            .Take(3)
+            .Sum()
+            .ToString();
     }
 }

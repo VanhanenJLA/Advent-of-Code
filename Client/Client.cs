@@ -27,42 +27,32 @@ public static class Client
     
     public static void SaveInput(string input, (int year, int day, InputFile.Type type) options)
     {
-        var (year, day, type) = options;
-        if (type == InputFile.Type.Class)
-        {
-            input = WrapInClassTemplate(input);
+        File.WriteAllText(GetInputFilePath(options), input.TrimEnd('\n'));
+    }
 
-            string WrapInClassTemplate(string input)
-            {
-                return File
-                    .ReadAllText(GetInputClassTemplatePath())
-                    .Replace(YearToken, year.ToString())
-                    .Replace(DayToken, day.ToString())
-                    .Replace(InputToken, input.TrimEnd('\n'));
-            }
-        }
-        File.WriteAllText(GetInputFilePath(options), input);
+    public static async Task<bool> SubmitAnswer(string answer, (int year, int day) options, Level level = Level.PartOne)
+    {
+        var (year, day) = options;
+        var response = await API.SubmitAnswer(answer, (year, day), level);
+
+        if (response.Contains(CorrectAnswerResponse))
+            return true;
+        
+        if (response.Contains(IncorrectAnswerResponse))
+            return false;
+
+        throw new Exception("Unmapped response: " + response);
     }
 }
 
 public class Tests
 {
-    const int year = 2023;
-    const int day = 2;
-    
-    [Fact]
-    public async void Should_solve_correctly()
-    {
-        var input = await API.GetInput((year, day));
-        var answer = Solution.Solve(input, Level.PartOne);
-        // SUBMIT ANSWER
-        // VERIFY RESPONSE
-    }
+    private const int year = 2023;
+    const int day = 4;
     
     [Theory]
-    // [InlineData(InputFile.Type.Text)]
-    [InlineData(InputFile.Type.Class)]
-    public async void Should_fetch_and_save_puzzle_input(InputFile.Type t)
+    [InlineData(InputFile.Type.Text)]
+    public async Task Should_fetch_and_save_puzzle_input(InputFile.Type t)
     {
         var input = await API.GetInput((year, day));
         Assert.NotEmpty(input);
@@ -73,7 +63,7 @@ public class Tests
     }
     
     [Fact]
-    public async void Should_fetch_and_save_puzzle_instructions()
+    public async Task Should_fetch_and_save_puzzle_instructions()
     {
         var content = await API.GetInstructions((year, day));
         Client.ParseAndSaveInstructions(content, (year, day));
@@ -82,11 +72,12 @@ public class Tests
         Assert.True(exists);
     }
     
-    [Fact]
-    public async void TEST_SUBMIT_ANSWER()
+    [Theory]
+    [InlineData("23750")]
+    public async Task Should_submit_correctly(string answer)
     {
-        var response = await API.SubmitAnswer("123", Level.PartOne, (year, day));
-        Console.WriteLine(response);
+        var correct = await Client.SubmitAnswer(answer, (year, day));
+        Assert.True(correct);
     }
     
 }

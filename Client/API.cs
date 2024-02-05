@@ -21,7 +21,7 @@ public class API
         return await response.Content.ReadAsStringAsync();
     }
 
-    public static async Task<string> SubmitAnswer(string answer, Level level, (int year, int day) options)
+    public static async Task<string> SubmitAnswer(string answer, (int year, int day) options, Level level)
     {
         var (year, day) = options;
         var url = $"https://adventofcode.com/{year}/day/{day}/answer";
@@ -29,7 +29,7 @@ public class API
         var content = new FormUrlEncodedContent(
             new Dictionary<string, string>
             {
-                { "level", level.ToString() },
+                { "level", ((int) level).ToString() },
                 { "answer", answer }
             });
 
