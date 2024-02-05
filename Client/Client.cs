@@ -1,8 +1,5 @@
-using Advent_of_Code;
-using Advent_of_Code._2022._1;
 using Common;
 using HtmlAgilityPack;
-using static Common.Constants;
 
 namespace Client;
 
@@ -43,6 +40,24 @@ public static class Client
 
         throw new Exception("Unmapped response: " + response);
     }
+
+    public static async Task<bool> CreateSolution((int year, int day) options)
+    {
+        var (year, day) = options;
+        var content = (await File
+                .ReadAllTextAsync(GetSolutionTemplatePath()))
+            .Replace(YearToken, year.ToString())
+            .Replace(DayToken, day.ToString());
+        var dir = Path.Combine(GetSolutionsProjectRootDirectory(), year.ToString(), day.ToString());
+        
+        Directory.CreateDirectory(dir);
+        var file = Path.Combine(dir, SolutionFileName);
+        if (File.Exists(file))
+            throw new Exception("Solution file already exists: " + file);
+        await File.WriteAllTextAsync(file, content);
+        return true;
+    }
+    
 }
 
 public class Tests
@@ -78,6 +93,14 @@ public class Tests
     {
         var correct = await Client.SubmitAnswer(answer, (year, day));
         Assert.True(correct);
+    }
+    
+    [Theory]
+    [InlineData(2023, 5)]
+    public async Task Should_scaffold_new_solution(int year, int day)
+    {
+        var success = await Client.CreateSolution((year, day));
+        Assert.True(success);
     }
     
 }

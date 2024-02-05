@@ -1,4 +1,5 @@
 using Common;
+using static Common.Constants;
 
 namespace Advent_of_Code;
 
@@ -23,7 +24,7 @@ public abstract class TestBase
     private string HandleInputInitialization(string? input)
     {
         return input
-            ?? File.ReadAllText(Utilities.GetSolutionFilePath().Replace("Solution.cs", Constants.InputTextFileName))
+            ?? File.ReadAllText(Utilities.GetSolutionFilePath().Replace(SolutionFileName, InputTextFileName))
             ?? throw new ArgumentException("No inline input data provided and input.txt was empty or not found.");
     }
 

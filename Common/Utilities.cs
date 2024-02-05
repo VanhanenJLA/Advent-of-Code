@@ -22,15 +22,13 @@ public static class Utilities
     public static string GetSolutionFilePath()
     {
         var stackTrace = new StackTrace(true);
-        // ReSharper disable once ReplaceWithSingleCallToFirstOrDefault
         var solutionFrame = stackTrace
             .GetFrames()
             .Select(frame => frame.GetFileName())
             .FirstOrDefault(filename => !string.IsNullOrEmpty(filename)
-                                        && filename.EndsWith("Solution.cs"));
+                                        && filename.EndsWith(SolutionFileName));
         return Path.GetFullPath(solutionFrame ?? throw new InvalidOperationException());
     }
-
     public static string GetSourceRootDirectory()
         => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..");
     // TODO: Enumerable.Repeat("..", 5)
@@ -40,9 +38,9 @@ public static class Utilities
 
     public static string GetCookieFilePath()
         => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "Client", CookieFilename);
-
-    public static string GetInputClassTemplatePath()
-        => Path.Combine(GetSourceRootDirectory(), "Client", InputClassTemplateName);
+    
+    public static string GetSolutionTemplatePath()
+        => Path.Combine(GetSourceRootDirectory(), ClientProjectName, SolutionTemplateFileName);
 
     public static string LoadInput((int year, int day, InputFile.Type type) options)
         => File.ReadAllText(GetInputFilePath(options));
