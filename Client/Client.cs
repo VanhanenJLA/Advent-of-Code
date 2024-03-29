@@ -22,9 +22,16 @@ public static class Client
         File.WriteAllText(GetInstructionsFilePath(options), template.DocumentNode.OuterHtml);
     }
     
-    public static void SaveInput(string input, (int year, int day, InputFile.Type type) options)
+    public static async Task<bool> SaveInput(string input, (int year, int day) options)
     {
-        File.WriteAllText(GetInputFilePath(options), input.TrimEnd('\n'));
+        await File.WriteAllTextAsync(GetInputFilePath(options), input.TrimEnd('\n'));
+        return true;
+    }
+
+    private static async Task<string> GetInput((int year, int day) options)
+    {
+        var (year, day) = options;
+        return await API.GetInput((year, day));
     }
 
     public static async Task<bool> SubmitAnswer(string answer, (int year, int day) options, Level level = Level.PartOne)
@@ -58,6 +65,17 @@ public static class Client
         return true;
     }
     
+    public static async Task<bool> Start((int year, int day) options)
+    {
+        var (year, day) = options;
+        var success = await CreateSolution((year, day));
+        if (!success) throw new Exception("Solution creation failed.");
+        var input = await GetInput((year, day));
+        success = await SaveInput(input, (year, day));
+        if (!success) throw new Exception("Input.txt creation failed.");
+        return true;
+    }
+    
 }
 
 public class Tests
@@ -65,14 +83,13 @@ public class Tests
     private const int year = 2023;
     const int day = 4;
     
-    [Theory]
-    [InlineData(InputFile.Type.Text)]
-    public async Task Should_fetch_and_save_puzzle_input(InputFile.Type t)
+    [Fact]
+    public async Task Should_fetch_and_save_puzzle_input()
     {
         var input = await API.GetInput((year, day));
         Assert.NotEmpty(input);
-        Client.SaveInput(input, (year, day, t));
-        var path = GetInputFilePath((year, day, t));
+        Client.SaveInput(input, (year, day));
+        var path = GetInputFilePath((year, day));
         var exists = File.Exists(path);
         Assert.True(exists);
     }
@@ -96,10 +113,10 @@ public class Tests
     }
     
     [Theory]
-    [InlineData(2023, 5)]
+    [InlineData(2023, 6)]
     public async Task Should_scaffold_new_solution(int year, int day)
     {
-        var success = await Client.CreateSolution((year, day));
+        var success = await Client.Start((year, day));
         Assert.True(success);
     }
     

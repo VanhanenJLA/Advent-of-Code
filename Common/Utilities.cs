@@ -42,14 +42,14 @@ public static class Utilities
     public static string GetSolutionTemplatePath()
         => Path.Combine(GetSourceRootDirectory(), ClientProjectName, SolutionTemplateFileName);
 
-    public static string LoadInput((int year, int day, InputFile.Type type) options)
+    public static string LoadInput((int year, int day) options)
         => File.ReadAllText(GetInputFilePath(options));
 
-    public static string GetInputFilePath((int year, int day, InputFile.Type type) options)
+    public static string GetInputFilePath((int year, int day) options)
     {
-        var (year, day, type) = options;
+        var (year, day) = options;
         var dir = GetSolutionsProjectRootDirectory();
-        var filename = InputFile.GetFilename(type);
+        var filename = InputFile.GetFilename(InputFile.Type.Text);
         return Path.Combine(dir, $"{year}/{day}/{filename}");
     }
 
