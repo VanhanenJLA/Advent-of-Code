@@ -13,14 +13,6 @@ public class Tests : TestBase
         DefaultTest(input, expected, level);
     }
     
-    [Theory]
-    [InlineData(null, "TBD", Level.PartOne)]
-    [InlineData(null, "TBD", Level.PartTwo)]
-    public override void Should_solve_correct_answer(string? input, string expected, Level level)
-    {
-        DefaultTest(input, expected, level);
-    }
-
 }
 
 public class Solution : ISolution
