@@ -1,9 +1,8 @@
 ﻿namespace Common;
 
-public class API
+public class AocIntegration
 {
-    
-    static readonly HttpClient client = new() { DefaultRequestHeaders = { { "Cookie", File.ReadAllText(GetCookieFilePath()) } } };
+    private static readonly HttpClient Client = new() { DefaultRequestHeaders = { { "Cookie", File.ReadAllText(GetCookieFilePath()) } } };
 
     public static async Task<string> GetInput((int year, int day) options) => await Get(options, true);
 
@@ -14,8 +13,8 @@ public class API
         var (year, day) = options;
         var url = $"https://adventofcode.com/{year}/day/{day}";
         if (input) url += "/input";
-
-        var response = await client.GetAsync(url);
+        
+        var response = await Client.GetAsync(url);
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadAsStringAsync();
@@ -33,7 +32,7 @@ public class API
                 { "answer", answer }
             });
 
-        var response = await client.PostAsync(url, content);
+        var response = await Client.PostAsync(url, content);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsStringAsync();
     }

@@ -31,13 +31,13 @@ public static class Client
     private static async Task<string> GetInput((int year, int day) options)
     {
         var (year, day) = options;
-        return await API.GetInput((year, day));
+        return await AocIntegration.GetInput((year, day));
     }
 
     public static async Task<bool> SubmitAnswer(string answer, (int year, int day) options, Level level = Level.PartOne)
     {
         var (year, day) = options;
-        var response = await API.SubmitAnswer(answer, (year, day), level);
+        var response = await AocIntegration.SubmitAnswer(answer, (year, day), level);
 
         if (response.Contains(CorrectAnswerResponse))
             return true;
@@ -86,7 +86,7 @@ public class Tests
     [Fact]
     public async Task Should_fetch_and_save_puzzle_input()
     {
-        var input = await API.GetInput((year, day));
+        var input = await AocIntegration.GetInput((year, day));
         Assert.NotEmpty(input);
         Client.SaveInput(input, (year, day));
         var path = GetInputFilePath((year, day));
@@ -97,7 +97,7 @@ public class Tests
     [Fact]
     public async Task Should_fetch_and_save_puzzle_instructions()
     {
-        var content = await API.GetInstructions((year, day));
+        var content = await AocIntegration.GetInstructions((year, day));
         Client.ParseAndSaveInstructions(content, (year, day));
         var path = GetInstructionsFilePath((year, day));
         var exists = File.Exists(path);
@@ -105,8 +105,8 @@ public class Tests
     }
     
     [Theory]
-    [InlineData("23750")]
-    public async Task Should_submit_correctly(string answer)
+    [InlineData("23750", 2023, 04)]
+    public async Task Should_submit_correctly(string answer, int year, int day)
     {
         var correct = await Client.SubmitAnswer(answer, (year, day));
         Assert.True(correct);

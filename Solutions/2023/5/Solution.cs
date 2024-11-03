@@ -64,7 +64,7 @@ public class Solution : ISolution
                 .Split(" ")
                 .Select(int.Parse)
                 .ToArray();
-        var (a, b, c) = numbers;
+        // var (a, b, c) = numbers;
         return new Mapping(numbers[0], numbers[1], numbers[2]);
     }
 
