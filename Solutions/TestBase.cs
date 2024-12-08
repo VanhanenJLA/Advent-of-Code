@@ -13,19 +13,23 @@ public abstract class TestBase
         var solutionName = $"Advent_of_Code._{year}._{day}.Solution";
         var type = Type.GetType(solutionName)
                    ?? throw new Exception($"Solution '{solutionName}' not found");
-        var solution = Activator.CreateInstance(type) as ISolution;
+        var solution = Activator.CreateInstance(type) as ISolution
+                       ?? throw new Exception($"Solution Instance Creation failed.");
         
-        input = HandleInputInitialization(input);
+        input = Initialize(input);
         var answer = solution.Solve(input, level);
         Assert.Equal(expected, answer);
     }
 
 
-    private string HandleInputInitialization(string? input)
+    private static string Initialize(string? input)
     {
+        var inputFilePath = Utilities
+            .GetSolutionFilePath()
+            .Replace(SolutionFileName, InputTextFileName);
         return input
-            ?? File.ReadAllText(Utilities.GetSolutionFilePath().Replace(SolutionFileName, InputTextFileName))
-            ?? throw new ArgumentException("No inline input data provided and input.txt was empty or not found.");
+            ?? File.ReadAllText(inputFilePath)
+            ?? throw new ArgumentException($"Puzzle input was not provided inline and locally stored input was not found at path: '{inputFilePath}'");
     }
 
 }

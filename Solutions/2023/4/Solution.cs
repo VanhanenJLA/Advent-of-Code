@@ -46,7 +46,7 @@ public class Solution : ISolution
     {
         
         var cards = input
-            .Split("\n")
+            .Split(Environment.NewLine)
             .Select(Parse);
         
         if (level == Level.PartOne)

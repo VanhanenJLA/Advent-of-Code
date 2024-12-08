@@ -37,10 +37,10 @@ public static class Utilities
         => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "Solutions");
 
     public static string GetCookieFilePath()
-        => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "Client", CookieFilename);
+        => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "TaskRunner", CookieFilename);
     
     public static string GetSolutionTemplatePath()
-        => Path.Combine(GetSourceRootDirectory(), ClientProjectName, SolutionTemplateFileName);
+        => Path.Combine(GetSourceRootDirectory(), TaskRunnerProjectName, SolutionTemplateFileName);
 
     public static string LoadInput((int year, int day) options)
         => File.ReadAllText(GetInputFilePath(options));

@@ -78,7 +78,7 @@ public class Solution : ISolution
     public string Solve(string input, Level level)
     {
         var games = input
-            .Split("\n")
+            .Split(Environment.NewLine)
             .Select(ParseGame);
 
         if (level == Level.PartOne)

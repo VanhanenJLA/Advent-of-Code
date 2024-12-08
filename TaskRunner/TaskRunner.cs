@@ -1,9 +1,9 @@
 using Common;
 using HtmlAgilityPack;
 
-namespace Client;
+namespace TaskRunner;
 
-public static class Client
+public static class TaskRunner
 {
     public static void ParseAndSaveInstructions(string content, (int year, int day) options)
     {
@@ -24,20 +24,20 @@ public static class Client
     
     public static async Task<bool> SaveInput(string input, (int year, int day) options)
     {
-        await File.WriteAllTextAsync(GetInputFilePath(options), input.TrimEnd('\n'));
+        await File.WriteAllTextAsync(GetInputFilePath(options), input.ReplaceLineEndings());
         return true;
     }
 
     private static async Task<string> GetInput((int year, int day) options)
     {
         var (year, day) = options;
-        return await AocIntegration.GetInput((year, day));
+        return await AocHttpIntegration.GetInput((year, day));
     }
 
     public static async Task<bool> SubmitAnswer(string answer, (int year, int day) options, Level level = Level.PartOne)
     {
         var (year, day) = options;
-        var response = await AocIntegration.SubmitAnswer(answer, (year, day), level);
+        var response = await AocHttpIntegration.SubmitAnswer(answer, (year, day), level);
 
         if (response.Contains(CorrectAnswerResponse))
             return true;
@@ -81,14 +81,15 @@ public static class Client
 public class Tests
 {
     private const int year = 2023;
-    const int day = 4;
+    const int day = 5;
     
     [Fact]
     public async Task Should_fetch_and_save_puzzle_input()
     {
-        var input = await AocIntegration.GetInput((year, day));
+        var input = await AocHttpIntegration.GetInput((year, day));
         Assert.NotEmpty(input);
-        Client.SaveInput(input, (year, day));
+        var success = await TaskRunner.SaveInput(input, (year, day));
+        Assert.True(success);
         var path = GetInputFilePath((year, day));
         var exists = File.Exists(path);
         Assert.True(exists);
@@ -97,8 +98,8 @@ public class Tests
     [Fact]
     public async Task Should_fetch_and_save_puzzle_instructions()
     {
-        var content = await AocIntegration.GetInstructions((year, day));
-        Client.ParseAndSaveInstructions(content, (year, day));
+        var content = await AocHttpIntegration.GetInstructions((year, day));
+        TaskRunner.ParseAndSaveInstructions(content, (year, day));
         var path = GetInstructionsFilePath((year, day));
         var exists = File.Exists(path);
         Assert.True(exists);
@@ -108,15 +109,15 @@ public class Tests
     [InlineData("23750", 2023, 04)]
     public async Task Should_submit_correctly(string answer, int year, int day)
     {
-        var correct = await Client.SubmitAnswer(answer, (year, day));
+        var correct = await TaskRunner.SubmitAnswer(answer, (year, day));
         Assert.True(correct);
     }
     
     [Theory]
-    [InlineData(2023, 6)]
+    [InlineData(2023, 7)]
     public async Task Should_scaffold_new_solution(int year, int day)
     {
-        var success = await Client.Start((year, day));
+        var success = await TaskRunner.Start((year, day));
         Assert.True(success);
     }
     

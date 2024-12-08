@@ -24,7 +24,7 @@ public class Solution : ISolution
     
     public string Solve(string input, Level level)
     {
-        var rows = input.Split("\n");
+        var rows = input.Split(Environment.NewLine);
         var assignments = rows.Select(Parse);
 
         var overlappingPredicate = Get(level);

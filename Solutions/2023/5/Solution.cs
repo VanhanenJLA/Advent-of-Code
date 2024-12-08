@@ -21,22 +21,59 @@ public class Tests : TestBase
         Assert.Equal(expected, actual);
     }
 
-    [Theory]
-    [InlineData(ExampleInput.Example, 79, 81)]
-    public void Should_map_and_print_seed_to_soil(string? input, int seed, int soil)
+    [Fact]
+    public void Should_parse_and_sort_category()
     {
-        // Seed number 79 corresponds to soil number 81.
-        Assert.Fail();
+        var category = ExampleInput.Example
+            .Split(Solution.DoublyNewLine, StringSplitOptions.RemoveEmptyEntries)
+            .Skip(1)
+            .First();
+
+        var cs = Solution
+            .ParseCategory(category)
+            .OrderBy(c => c.source.Item2);
+
+        var expected = new Solution.Mapping(("seed", 50), ("soil", 52), 48);
+        Assert.True(cs.Last().source.Item2 > cs.First().source.Item2);
+        Assert.Equal(expected, cs.First());
+
+
+        // seed-to-soil map:
+        // 50 98 2
+
+        // SEED | SOIL
+        // 98 => 50
+        // 99 => 51
     }
 }
 
 public class Solution : ISolution
 {
+    public static string DoublyNewLine => Environment.NewLine + Environment.NewLine;
+
     public string Solve(string input, Level level)
     {
-        var categories = input.Split("\n\n", StringSplitOptions.RemoveEmptyEntries);
-        var seeds = ParseSeeds(categories.First());
+        var headers = input.Split(DoublyNewLine, StringSplitOptions.RemoveEmptyEntries);
+        var seeds = ParseSeeds(headers.First());
+
+        var categories = headers
+            .Skip(1)
+            .Select(ParseCategory);
+
+        var seed = seeds.MinBy(s => s);
+
+        foreach (var c in categories)
+        {
+            Console.WriteLine("Helost");
+        }
+
         throw new NotImplementedException();
+    }
+
+    public int Map(int i, Mapping m)
+    {
+        // if (m.source > )
+        return 0;
     }
 
     public static IEnumerable<int> ParseSeeds(string seeds)
@@ -48,30 +85,40 @@ public class Solution : ISolution
             .Select(int.Parse);
     }
 
+    public record Mapping((string, int) source, (string, int) destination, int length);
+
     public static IEnumerable<Mapping> ParseCategory(string category)
     {
+        var header = category
+            .Split(" map:", StringSplitOptions.RemoveEmptyEntries)
+            .First()
+            .Split("-to-", StringSplitOptions.RemoveEmptyEntries);
+
+        var sourceName = header.First();
+        var destinationName = header.Last();
+
         return category
             .Split(" map:", StringSplitOptions.RemoveEmptyEntries)
             .Last()
-            .Split("\n")
-            .Select(ParseMapping);
+            .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries)
+            .Select(ParseMapping)
+            .Select(r => new Mapping((sourceName, r.source), (destinationName, r.destination), r.length));
     }
 
-    private static Mapping ParseMapping(string mapping)
+    private record MappingRow(int source, int destination, int length);
+
+    private static MappingRow ParseMapping(string mapping)
     {
         var numbers =
             mapping
                 .Split(" ")
                 .Select(int.Parse)
                 .ToArray();
-        // var (a, b, c) = numbers;
-        return new Mapping(numbers[0], numbers[1], numbers[2]);
-    }
 
-    public record Mapping(int dest, int source, int length);
+        var source = numbers[1];
+        var dest = numbers[0];
+        var length = numbers[2];
 
-    int Map(int i, Mapping m)
-    {
-        return 0;
+        return new(source, dest, length);
     }
 }

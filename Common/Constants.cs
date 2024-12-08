@@ -8,7 +8,7 @@ public static class Constants
     public const string SolutionTemplateFileName = "SolutionTemplate.txt";
     public const string InputTextFileName = "input.txt";
     public const string SolutionFileName = "Solution.cs";
-    public const string ClientProjectName = "Client";
+    public const string TaskRunnerProjectName = "TaskRunner";
     
     public const string YearToken = "¤YEAR¤";
     public const string DayToken = "¤DAY¤";
@@ -19,4 +19,5 @@ public static class Constants
     public const string CorrectAnswerResponse = "That's the right answer";
     public const string TooLow = "your answer is too low";
     public const string TooHigh = "your answer is too high";
+    
 }

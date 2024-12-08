@@ -31,7 +31,7 @@ public class Solution : ISolution
         var parsingStrategy = Get(level);
         
         return input
-            .Split("\n")
+            .Split(Environment.NewLine)
             .Select(ParseCalibrationValue)
             .Sum()
             .ToString();

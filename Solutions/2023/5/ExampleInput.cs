@@ -1,13 +1,13 @@
 ﻿namespace Advent_of_Code._2023._5;
 
 public static class ExampleInput
-{ 
+{
     public const string SeedToSoil = @"seeds: 79 14 55 13
 
 seed-to-soil map:
 50 98 2
 52 50 48";
-    
+
     public const string Example = @"seeds: 79 14 55 13
 
 seed-to-soil map:
@@ -41,4 +41,8 @@ temperature-to-humidity map:
 humidity-to-location map:
 60 56 37
 56 93 4";
+
+    public const string Mapping = @"seed-to-soil map:
+50 98 2
+52 50 48";
 }

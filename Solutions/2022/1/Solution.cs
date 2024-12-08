@@ -23,7 +23,7 @@ public class Solution : ISolution
         var calories = groups
             .Select(group =>
                 {
-                    var calories = group.Split("\n");
+                    var calories = group.Split(Environment.NewLine);
                     var numbers = calories.Select(int.Parse);
                     return numbers.Sum();
                 }

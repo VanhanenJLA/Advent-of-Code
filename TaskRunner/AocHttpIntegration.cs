@@ -1,8 +1,17 @@
-﻿namespace Common;
+﻿using System.Net.Http.Headers;
 
-public class AocIntegration
+namespace Common;
+
+public class AocHttpIntegration
 {
-    private static readonly HttpClient Client = new() { DefaultRequestHeaders = { { "Cookie", File.ReadAllText(GetCookieFilePath()) } } };
+    
+    private static readonly HttpClient Client;
+
+    static AocHttpIntegration()
+    {
+        Client = new HttpClient();
+        Client.DefaultRequestHeaders.Add("Cookie", File.ReadAllText(GetCookieFilePath()));
+    }
 
     public static async Task<string> GetInput((int year, int day) options) => await Get(options, true);
 
