@@ -68,7 +68,7 @@ public class Solution : ISolution
         {
             Level.PartOne => IsSubset,
             Level.PartTwo => IsOverlapping,
-            _ => throw new ArgumentException("Unmapped level: " + level)
+            _ => throw new ArgumentException($"Unmapped level: {level}")
         };
     
 }

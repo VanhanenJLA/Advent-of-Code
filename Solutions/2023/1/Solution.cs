@@ -45,7 +45,7 @@ public class Solution : ISolution
         {
             Level.PartOne => ParseAsSingleDigitCharacters,
             Level.PartTwo => ParseAsRegex,
-            _ => throw new ArgumentException("Cannot decide parsing strategy for level: " + level)
+            _ => throw new ArgumentException($"Cannot decide parsing strategy for level: {level}")
         };
 
     static long ParseAsSingleDigitCharacters(string line)

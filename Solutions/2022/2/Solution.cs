@@ -100,7 +100,7 @@ public class Solution : ISolution
             'A' or 'X' => PlayType.Rock,
             'B' or 'Y' => PlayType.Paper,
             'C' or 'Z' => PlayType.Scissors,
-            _ => throw new ArgumentException("Unmapped character: " + c)
+            _ => throw new ArgumentException($"Unmapped character: {c}")
         };
     
     OutcomeType GetOutcome(char c) =>
@@ -109,7 +109,7 @@ public class Solution : ISolution
             'X' => OutcomeType.Loss,
             'Y' => OutcomeType.Draw,
             'Z' => OutcomeType.Win,
-            _ => throw new ArgumentException("Unmapped character: " + c)
+            _ => throw new ArgumentException($"Unmapped character: {c}")
         };
 }
 

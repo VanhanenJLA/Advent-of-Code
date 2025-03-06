@@ -2,11 +2,11 @@
 
 namespace API;
 
-public class Integration
+public class AdventOfCodeAPI
 {
     private HttpClient Client;
 
-    public Integration(string cookie)
+    public AdventOfCodeAPI(string cookie)
     {
         Client = new HttpClient();
         Client.DefaultRequestHeaders.Add("Cookie", cookie);

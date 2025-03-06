@@ -1,10 +1,14 @@
+using System.Runtime.CompilerServices;
 using Common;
 using HtmlAgilityPack;
+using API;
 
-namespace TaskRunner;
+namespace DeveloperClient;
 
-public static class TaskRunner
+public static class DeveloperClient
 {
+    private static AdventOfCodeAPI api = new(File.ReadAllText(GetCookieFilePath()));
+    
     public static void ParseAndSaveInstructions(string content, (int year, int day) options)
     {
         var doc = new HtmlDocument();
@@ -31,21 +35,23 @@ public static class TaskRunner
     private static async Task<string> GetInput((int year, int day) options)
     {
         var (year, day) = options;
-        return await AocHttpIntegration.GetInput((year, day));
+        return await api.GetInput((year, day));
     }
 
     public static async Task<bool> SubmitAnswer(string answer, (int year, int day) options, Level level = Level.PartOne)
     {
         var (year, day) = options;
-        var response = await AocHttpIntegration.SubmitAnswer(answer, (year, day), level);
+        var response = await api.SubmitAnswer(answer, (year, day), level);
 
         if (response.Contains(CorrectAnswerResponse))
             return true;
         
         if (response.Contains(IncorrectAnswerResponse))
             return false;
+        
+        // if (response.Contains(AlreadySolvedResponse))
 
-        throw new Exception("Unmapped response: " + response);
+        throw new Exception($"Unmapped response: {response}");
     }
 
     public static async Task<bool> CreateSolution((int year, int day) options)
@@ -60,7 +66,7 @@ public static class TaskRunner
         Directory.CreateDirectory(dir);
         var file = Path.Combine(dir, SolutionFileName);
         if (File.Exists(file))
-            throw new Exception("Solution file already exists: " + file);
+            throw new Exception($"Solution file already exists: {file}");
         await File.WriteAllTextAsync(file, content);
         return true;
     }
@@ -80,15 +86,16 @@ public static class TaskRunner
 
 public class Tests
 {
+    private static AdventOfCodeAPI api = new(File.ReadAllText(GetCookieFilePath()));
     private const int year = 2023;
     const int day = 5;
     
     [Fact]
     public async Task Should_fetch_and_save_puzzle_input()
     {
-        var input = await AocHttpIntegration.GetInput((year, day));
+        var input = await api.GetInput((year, day));
         Assert.NotEmpty(input);
-        var success = await TaskRunner.SaveInput(input, (year, day));
+        var success = await DeveloperClient.SaveInput(input, (year, day));
         Assert.True(success);
         var path = GetInputFilePath((year, day));
         var exists = File.Exists(path);
@@ -98,8 +105,8 @@ public class Tests
     [Fact]
     public async Task Should_fetch_and_save_puzzle_instructions()
     {
-        var content = await AocHttpIntegration.GetInstructions((year, day));
-        TaskRunner.ParseAndSaveInstructions(content, (year, day));
+        var content = await api.GetInstructions((year, day));
+        DeveloperClient.ParseAndSaveInstructions(content, (year, day));
         var path = GetInstructionsFilePath((year, day));
         var exists = File.Exists(path);
         Assert.True(exists);
@@ -109,7 +116,7 @@ public class Tests
     [InlineData("23750", 2023, 04)]
     public async Task Should_submit_correctly(string answer, int year, int day)
     {
-        var correct = await TaskRunner.SubmitAnswer(answer, (year, day));
+        var correct = await DeveloperClient.SubmitAnswer(answer, (year, day));
         Assert.True(correct);
     }
     
@@ -117,7 +124,7 @@ public class Tests
     [InlineData(2023, 7)]
     public async Task Should_scaffold_new_solution(int year, int day)
     {
-        var success = await TaskRunner.Start((year, day));
+        var success = await DeveloperClient.Start((year, day));
         Assert.True(success);
     }
     

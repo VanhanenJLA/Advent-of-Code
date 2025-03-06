@@ -22,12 +22,13 @@ public static class Utilities
     public static string GetSolutionFilePath()
     {
         var stackTrace = new StackTrace(true);
-        var solutionFrame = stackTrace
+        var stackFrame = stackTrace
             .GetFrames()
-            .Select(frame => frame.GetFileName())
-            .FirstOrDefault(filename => !string.IsNullOrEmpty(filename)
-                                        && filename.EndsWith(SolutionFileName));
-        return Path.GetFullPath(solutionFrame ?? throw new InvalidOperationException());
+            .Where(f => !string.IsNullOrEmpty(f.GetFileName()))
+            .Where(f => f.GetFileName()!.EndsWith(SolutionFileName))
+            .FirstOrDefault() 
+                       ?? throw new Exception($"StackFrame for {SolutionFileName} not found.");
+        return Path.GetFullPath(stackFrame.GetFileName()!);
     }
     public static string GetSourceRootDirectory()
         => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..");
@@ -37,7 +38,7 @@ public static class Utilities
         => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "Solutions");
 
     public static string GetCookieFilePath()
-        => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "TaskRunner", CookieFilename);
+        => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "DeveloperClient", CookieFilename);
     
     public static string GetSolutionTemplatePath()
         => Path.Combine(GetSourceRootDirectory(), TaskRunnerProjectName, SolutionTemplateFileName);
@@ -73,6 +74,6 @@ public static class InputFile
     public static string GetFilename(Type t) => t switch
     {
         Type.Text => "input.txt",
-        _ => throw new ArgumentException("Unknown input file type: " + t)
+        _ => throw new ArgumentException($"Unknown input file type: {t}")
     };
 }
