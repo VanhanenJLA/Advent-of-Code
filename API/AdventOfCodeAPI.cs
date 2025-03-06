@@ -1,35 +1,33 @@
-﻿using System.Net.Http.Headers;
+﻿using Common;
 
-namespace Common;
+namespace API;
 
-public class AocHttpIntegration
+public class Integration
 {
-    
-    private static readonly HttpClient Client;
+    private HttpClient Client;
 
-    static AocHttpIntegration()
+    public Integration(string cookie)
     {
         Client = new HttpClient();
-        Client.DefaultRequestHeaders.Add("Cookie", File.ReadAllText(GetCookieFilePath()));
+        Client.DefaultRequestHeaders.Add("Cookie", cookie);
     }
 
-    public static async Task<string> GetInput((int year, int day) options) => await Get(options, true);
+    public async Task<string> GetInput((int year, int day) options) => await Get(options, true);
+    public async Task<string> GetInstructions((int year, int day) options) => await Get(options);
 
-    public static async Task<string> GetInstructions((int year, int day) options) => await Get(options);
-
-    private static async Task<string> Get((int year, int day) options, bool input = false)
+    private async Task<string> Get((int year, int day) options, bool input = false)
     {
         var (year, day) = options;
         var url = $"https://adventofcode.com/{year}/day/{day}";
         if (input) url += "/input";
-        
+
         var response = await Client.GetAsync(url);
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadAsStringAsync();
     }
 
-    public static async Task<string> SubmitAnswer(string answer, (int year, int day) options, Level level)
+    public async Task<string> SubmitAnswer(string answer, (int year, int day) options, Level level)
     {
         var (year, day) = options;
         var url = $"https://adventofcode.com/{year}/day/{day}/answer";
@@ -37,7 +35,7 @@ public class AocHttpIntegration
         var content = new FormUrlEncodedContent(
             new Dictionary<string, string>
             {
-                { "level", ((int) level).ToString() },
+                { "level", ((int)level).ToString() },
                 { "answer", answer }
             });
 
