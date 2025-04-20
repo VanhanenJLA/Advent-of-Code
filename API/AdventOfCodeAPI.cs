@@ -4,12 +4,11 @@ namespace API;
 
 public class AdventOfCodeAPI
 {
-    private HttpClient Client;
+    private readonly HttpClient _client = new();
 
     public AdventOfCodeAPI(string cookie)
     {
-        Client = new HttpClient();
-        Client.DefaultRequestHeaders.Add("Cookie", cookie);
+        _client.DefaultRequestHeaders.Add("Cookie", cookie);
     }
 
     public async Task<string> GetInput((int year, int day) options) => await Get(options, true);
@@ -21,7 +20,7 @@ public class AdventOfCodeAPI
         var url = $"https://adventofcode.com/{year}/day/{day}";
         if (input) url += "/input";
 
-        var response = await Client.GetAsync(url);
+        var response = await _client.GetAsync(url);
         response.EnsureSuccessStatusCode();
 
         return await response.Content.ReadAsStringAsync();
@@ -39,7 +38,7 @@ public class AdventOfCodeAPI
                 { "answer", answer }
             });
 
-        var response = await Client.PostAsync(url, content);
+        var response = await _client.PostAsync(url, content);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsStringAsync();
     }

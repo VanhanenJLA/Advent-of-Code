@@ -41,7 +41,7 @@ public static class Utilities
         => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "DeveloperClient", CookieFilename);
     
     public static string GetSolutionTemplatePath()
-        => Path.Combine(GetSourceRootDirectory(), TaskRunnerProjectName, SolutionTemplateFileName);
+        => Path.Combine(GetSourceRootDirectory(), DeveloperClientProjectName, SolutionTemplateFileName);
 
     public static string LoadInput((int year, int day) options)
         => File.ReadAllText(GetInputFilePath(options));
