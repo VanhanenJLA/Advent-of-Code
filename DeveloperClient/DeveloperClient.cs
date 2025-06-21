@@ -9,23 +9,30 @@ public static class DeveloperClient
 {
     private static AdventOfCodeAPI api = new(File.ReadAllText(GetCookieFilePath()));
 
-    public static HtmlNode ParseInstructions(string content)
+    public static HtmlNodeCollection ParseInstructions(string content)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(content);
-        return doc.DocumentNode.SelectSingleNode("//article[@class='day-desc']")
-               ?? throw new Exception("Article node not found.");
+
+        var nodes = doc.DocumentNode.SelectNodes("//article[@class='day-desc']");
+        if (nodes is null || !nodes.Any())
+            throw new Exception("Article node not found.");
+        return nodes;
     }
 
-    public static void SaveInstructions((int year, int day) options, HtmlNode articleNode)
+    public static void SaveInstructions((int year, int day) options, HtmlNodeCollection articles)
     {
         var template = new HtmlDocument();
         template.Load(GetInstructionsTemplateFilePath());
 
-        template
+        var body =template
             .DocumentNode
-            .SelectSingleNode("//body")
-            .AppendChild(articleNode);
+            .SelectSingleNode("//body");
+
+        foreach (var a in articles)
+        {
+            body.AppendChild(a);
+        }
 
         File.WriteAllText(GetInstructionsFilePath(options), template.DocumentNode.OuterHtml);
     }
@@ -90,17 +97,18 @@ public static class DeveloperClient
 public class Tests
 {
     private static AdventOfCodeAPI api = new(File.ReadAllText(GetCookieFilePath()));
-    private const int year = 2023;
-    const int day = 5;
+    
+    private const int Year = 2023;
+    private const int Day = 5;
 
     [Fact]
     public async Task Should_fetch_and_save_puzzle_input()
     {
-        var input = await api.GetInput((year, day));
+        var input = await api.GetInput((Year, Day));
         Assert.NotEmpty(input);
-        var success = await SaveInput(input, (year, day));
+        var success = await SaveInput(input, (Year, Day));
         Assert.True(success);
-        var path = GetInputFilePath((year, day));
+        var path = GetInputFilePath((Year, Day));
         var exists = File.Exists(path);
         Assert.True(exists);
     }
@@ -108,10 +116,10 @@ public class Tests
     [Fact]
     public async Task Should_fetch_and_save_puzzle_instructions()
     {
-        var content = await api.GetInstructions((year, day));
+        var content = await api.GetInstructions((Year, Day));
         var instructions = ParseInstructions(content);
-        SaveInstructions((year, day), instructions);
-        var path = GetInstructionsFilePath((year, day));
+        SaveInstructions((Year, Day), instructions);
+        var path = GetInstructionsFilePath((Year, Day));
         var exists = File.Exists(path);
         Assert.True(exists);
     }

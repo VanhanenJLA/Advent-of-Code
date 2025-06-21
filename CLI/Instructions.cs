@@ -5,12 +5,13 @@ using System.Text.RegularExpressions;
 using API;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
+using static DeveloperClient.DeveloperClient;
 
 namespace CLI;
 
 public class InstructionsCommand : Command
 {
-    public InstructionsCommand() : base("instructions", "Fetch instruction Instructions from API")
+    public InstructionsCommand() : base("instructions", "Interact with instructions API")
     {
         AddCommand(new GetInstructionCommand());
     }
@@ -18,7 +19,7 @@ public class InstructionsCommand : Command
 
 public class GetInstructionCommand : Command
 {
-    public GetInstructionCommand() : base("get", "Retrieve puzzle instructions")
+    public GetInstructionCommand() : base("get", "Retrieve instructions for a given date's puzzle")
     {
 
         var dayOption = new Option<int>(
@@ -54,10 +55,12 @@ public class GetInstructionCommand : Command
             {
                 Year ??= DateOnly.FromDateTime(DateTime.Now).Year - 1;
                 var item = await _api.GetInstructions((Year.Value, Day));
-                var article = DeveloperClient.DeveloperClient.ParseInstructions(item);
-                
-                var markup = HtmlToSpectreConverter.ConvertHtmlToSpectreMarkup(article.OuterHtml);
-                AnsiConsole.MarkupLine(markup);
+                var articles = ParseInstructions(item);
+                foreach (var a in articles)
+                {
+                    var markup = HtmlToSpectreConverter.ConvertHtmlToSpectreMarkup(a.OuterHtml);
+                    AnsiConsole.MarkupLine(markup);
+                }
                 // Output(markup);
                 return 0;
             }
@@ -88,7 +91,6 @@ public class GetInstructionCommand : Command
         public int Invoke(InvocationContext context) => InvokeAsync(context).GetAwaiter().GetResult();
     }
 }
-
 
 public static partial class HtmlToSpectreConverter
 {
