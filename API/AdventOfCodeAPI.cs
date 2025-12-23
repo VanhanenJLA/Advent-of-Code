@@ -8,7 +8,7 @@ public class AdventOfCodeAPI
 
     public AdventOfCodeAPI(string cookie)
     {
-        _client.DefaultRequestHeaders.Add("Cookie", cookie);
+        _client.DefaultRequestHeaders.Add("Cookie", $"session={cookie}");
     }
 
     public async Task<string> GetInput((int year, int day) options) => await Get(options, true);

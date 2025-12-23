@@ -7,7 +7,7 @@ namespace DeveloperClient;
 
 public static class DeveloperClient
 {
-    private static AdventOfCodeAPI api = new(File.ReadAllText(GetCookieFilePath()));
+    private static AdventOfCodeAPI api => new(File.ReadAllText(GetCookieFilePath()));
 
     public static HtmlNodeCollection ParseInstructions(string content)
     {
@@ -96,7 +96,7 @@ public static class DeveloperClient
 
 public class Tests
 {
-    private static AdventOfCodeAPI api = new(File.ReadAllText(GetCookieFilePath()));
+    private static AdventOfCodeAPI api => new(File.ReadAllText(GetCookieFilePath()));
     
     private const int Year = 2023;
     private const int Day = 5;

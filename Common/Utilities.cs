@@ -67,7 +67,7 @@ public static class Utilities
     }
 
     public static string GetInstructionsTemplateFilePath()
-        => Path.Combine(GetSolutionsProjectRootDirectory(), InstructionsTemplateName);
+        => Path.Combine(GetSourceRootDirectory(), DeveloperClientProjectName, InstructionsTemplateName);
 }
 
 public static class InputFile

@@ -24,6 +24,7 @@ public static class Program
         rootCommand.AddCommand(new InputsCommand());
         rootCommand.AddCommand(new InstructionsCommand());
         rootCommand.AddCommand(new ConfigCommand());
+        rootCommand.AddCommand(new StartCommand());
 
         var builder = new CommandLineBuilder(rootCommand)
             .UseHost(_ => Host.CreateDefaultBuilder(args), hostBuilder =>
@@ -43,6 +44,7 @@ public static class Program
                 });
                 hostBuilder.UseCommandHandler<GetInputCommand, GetInputCommand.Handler>();
                 hostBuilder.UseCommandHandler<GetInstructionCommand, GetInstructionCommand.Handler>();
+                hostBuilder.UseCommandHandler<StartCommand, StartCommand.Handler>();
             })
             .UseDefaults()
             .Build();
