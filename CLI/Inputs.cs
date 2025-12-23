@@ -1,7 +1,7 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Text.Json;
-using API;
+using Backend.Integrations;
 using Microsoft.Extensions.Logging;
 
 namespace CLI;

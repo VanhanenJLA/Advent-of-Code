@@ -15,8 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\API\API.csproj" />
-      <ProjectReference Include="..\DeveloperClient\DeveloperClient.csproj" />
+      <ProjectReference Include="..\Backend\Backend.csproj" />
     </ItemGroup>
 
 </Project>

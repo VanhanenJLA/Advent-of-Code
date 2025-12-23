@@ -1,9 +1,9 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using API;
+using Backend.Integrations;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
-using static DeveloperClient.DeveloperClient;
+using Backend;
 
 namespace CLI;
 
@@ -56,16 +56,16 @@ public class StartCommand : Command
                     .StartAsync("Starting puzzle...", async ctx =>
                     {
                         ctx.Status("Scaffolding solution...");
-                        await CreateSolution(options);
+                        await Backend.Backend.CreateSolution(options);
                         
                         ctx.Status("Fetching puzzle input...");
                         var input = await _api.GetInput(options);
-                        await SaveInput(input, options);
+                        await Backend.Backend.SaveInput(input, options);
                         
                         ctx.Status("Fetching puzzle instructions...");
                         var content = await _api.GetInstructions(options);
-                        var instructions = ParseInstructions(content);
-                        SaveInstructions(options, instructions);
+                        var instructions = Backend.Backend.ParseInstructions(content);
+                        Backend.Backend.SaveInstructions(options, instructions);
                     });
 
                 AnsiConsole.MarkupLine($"[green]Successfully started puzzle for {Year}-{Day:D2}![/]");

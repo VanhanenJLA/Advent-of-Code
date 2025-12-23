@@ -1,11 +1,10 @@
 using Common;
 using HtmlAgilityPack;
-using API;
-using static DeveloperClient.DeveloperClient;
+using Backend.Integrations;
 
-namespace DeveloperClient;
+namespace Backend;
 
-public static class DeveloperClient
+public static class Backend
 {
     private static AdventOfCodeAPI api => new(File.ReadAllText(GetCookieFilePath()));
 
@@ -45,8 +44,29 @@ public static class DeveloperClient
 
     private static async Task<string> GetInput((int year, int day) options)
     {
-        var (year, day) = options;
-        return await api.GetInput((year, day));
+        var path = GetInputFilePath(options);
+        if (File.Exists(path))
+        {
+            return await File.ReadAllTextAsync(path);
+        }
+
+        var input = await api.GetInput(options);
+        await SaveInput(input, options);
+        return input;
+    }
+
+    private static async Task<string> GetInstructions((int year, int day) options)
+    {
+        var path = GetInstructionsFilePath(options);
+        if (File.Exists(path))
+        {
+            return await File.ReadAllTextAsync(path);
+        }
+
+        var content = await api.GetInstructions(options);
+        var instructions = ParseInstructions(content);
+        SaveInstructions(options, instructions);
+        return await File.ReadAllTextAsync(path);
     }
 
     public static async Task<bool> SubmitAnswer(string answer, (int year, int day) options, Level level = Level.PartOne)
@@ -60,7 +80,8 @@ public static class DeveloperClient
         if (response.Contains(IncorrectAnswerResponse))
             return false;
 
-        // if (response.Contains(AlreadySolvedResponse))
+        if (response.Contains(AlreadySolvedResponse))
+            return true;
 
         throw new Exception($"Unmapped response: {response}");
     }
@@ -87,9 +108,8 @@ public static class DeveloperClient
         var (year, day) = options;
         var success = await CreateSolution((year, day));
         if (!success) throw new Exception("Solution creation failed.");
-        var input = await GetInput((year, day));
-        success = await SaveInput(input, (year, day));
-        if (!success) throw new Exception("Input.txt creation failed.");
+        await GetInput((year, day));
+        await GetInstructions((year, day));
         return true;
     }
 }
@@ -106,8 +126,6 @@ public class Tests
     {
         var input = await api.GetInput((Year, Day));
         Assert.NotEmpty(input);
-        var success = await SaveInput(input, (Year, Day));
-        Assert.True(success);
         var path = GetInputFilePath((Year, Day));
         var exists = File.Exists(path);
         Assert.True(exists);
@@ -117,26 +135,26 @@ public class Tests
     public async Task Should_fetch_and_save_puzzle_instructions()
     {
         var content = await api.GetInstructions((Year, Day));
-        var instructions = ParseInstructions(content);
-        SaveInstructions((Year, Day), instructions);
+        Assert.NotEmpty(content);
         var path = GetInstructionsFilePath((Year, Day));
         var exists = File.Exists(path);
         Assert.True(exists);
     }
 
     [Theory]
-    [InlineData("23750", 2023, 04)]
-    public async Task Should_submit_correctly(string answer, int year, int day)
+    [InlineData("23750", 2023, 4, Level.PartOne)]
+    public async Task Should_submit_correctly(string answer, int year, int day, Level level)
     {
-        var correct = await SubmitAnswer(answer, (year, day));
+        var correct = await Backend.SubmitAnswer(answer, (year, day), level);
         Assert.True(correct);
     }
 
     [Theory]
-    [InlineData(2023, 7)]
+    [InlineData(2025, 1)]
     public async Task Should_scaffold_new_solution(int year, int day)
     {
-        var success = await Start((year, day));
+        // Check if exists
+        var success = await Backend.Start((year, day));
         Assert.True(success);
     }
 }

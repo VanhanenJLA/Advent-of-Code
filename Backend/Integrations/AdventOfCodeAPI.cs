@@ -1,6 +1,6 @@
 ﻿using Common;
 
-namespace API;
+namespace Backend.Integrations;
 
 public class AdventOfCodeAPI
 {

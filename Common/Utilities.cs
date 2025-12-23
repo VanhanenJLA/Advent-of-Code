@@ -47,7 +47,7 @@ public static class Utilities
     }
     
     public static string GetSolutionTemplatePath()
-        => Path.Combine(GetSourceRootDirectory(), DeveloperClientProjectName, SolutionTemplateFileName);
+        => Path.Combine(GetSourceRootDirectory(), BackendProjectName, SolutionTemplateFileName);
 
     public static string LoadInput((int year, int day) options)
         => File.ReadAllText(GetInputFilePath(options));
@@ -67,7 +67,7 @@ public static class Utilities
     }
 
     public static string GetInstructionsTemplateFilePath()
-        => Path.Combine(GetSourceRootDirectory(), DeveloperClientProjectName, InstructionsTemplateName);
+        => Path.Combine(GetSourceRootDirectory(), BackendProjectName, InstructionsTemplateName);
 }
 
 public static class InputFile
