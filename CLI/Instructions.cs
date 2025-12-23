@@ -2,10 +2,10 @@
 using System.CommandLine.Invocation;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Backend.Integrations;
-using static Common.Utilities;
+using Engine.Integrations;
+using static Common.PathsProvider;
 using static Common.Constants;
-using Backend;
+using Engine;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 
@@ -57,7 +57,7 @@ public class GetInstructionCommand : Command
             {
                 Year ??= DateOnly.FromDateTime(DateTime.Now).Year - 1;
                 var item = await _api.GetInstructions((Year.Value, Day));
-                var articles = Backend.Backend.ParseInstructions(item);
+                var articles = PuzzleEngine.ParseInstructions(item);
                 foreach (var a in articles)
                 {
                     var markup = HtmlToSpectreConverter.ConvertHtmlToSpectreMarkup(a.OuterHtml);

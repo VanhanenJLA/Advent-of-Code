@@ -2,10 +2,10 @@
 using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
 using System.CommandLine.Parsing;
-using Backend.Integrations;
+using Engine.Integrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using static Common.Utilities;
+using static Common.PathsProvider;
 
 namespace CLI;
 

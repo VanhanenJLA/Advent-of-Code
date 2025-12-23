@@ -1,12 +1,12 @@
 using Common;
 using HtmlAgilityPack;
-using Backend.Integrations;
+using Engine.Integrations;
 
-namespace Backend;
+namespace Engine;
 
-public static class Backend
+public static class PuzzleEngine
 {
-    private static AdventOfCodeAPI api => new(File.ReadAllText(GetCookieFilePath()));
+    private static AdventOfCodeAPI api => new(File.ReadAllText(PathsProvider.GetCookieFilePath()));
 
     public static HtmlNodeCollection ParseInstructions(string content)
     {
@@ -22,7 +22,7 @@ public static class Backend
     public static void SaveInstructions((int year, int day) options, HtmlNodeCollection articles)
     {
         var template = new HtmlDocument();
-        template.Load(GetInstructionsTemplateFilePath());
+        template.Load(PathsProvider.GetInstructionsTemplateFilePath());
 
         var body =template
             .DocumentNode
@@ -33,18 +33,18 @@ public static class Backend
             body.AppendChild(a);
         }
 
-        File.WriteAllText(GetInstructionsFilePath(options), template.DocumentNode.OuterHtml);
+        File.WriteAllText(PathsProvider.GetInstructionsFilePath(options), template.DocumentNode.OuterHtml);
     }
 
     public static async Task<bool> SaveInput(string input, (int year, int day) options)
     {
-        await File.WriteAllTextAsync(GetInputFilePath(options), input.ReplaceLineEndings());
+        await File.WriteAllTextAsync(PathsProvider.GetInputFilePath(options), input.ReplaceLineEndings());
         return true;
     }
 
     private static async Task<string> GetInput((int year, int day) options)
     {
-        var path = GetInputFilePath(options);
+        var path = PathsProvider.GetInputFilePath(options);
         if (File.Exists(path))
         {
             return await File.ReadAllTextAsync(path);
@@ -57,7 +57,7 @@ public static class Backend
 
     private static async Task<string> GetInstructions((int year, int day) options)
     {
-        var path = GetInstructionsFilePath(options);
+        var path = PathsProvider.GetInstructionsFilePath(options);
         if (File.Exists(path))
         {
             return await File.ReadAllTextAsync(path);
@@ -74,13 +74,13 @@ public static class Backend
         var (year, day) = options;
         var response = await api.SubmitAnswer(answer, (year, day), level);
 
-        if (response.Contains(CorrectAnswerResponse))
+        if (response.Contains(Constants.CorrectAnswerResponse))
             return true;
 
-        if (response.Contains(IncorrectAnswerResponse))
+        if (response.Contains(Constants.IncorrectAnswerResponse))
             return false;
 
-        if (response.Contains(AlreadySolvedResponse))
+        if (response.Contains(Constants.AlreadySolvedResponse))
             return true;
 
         throw new Exception($"Unmapped response: {response}");
@@ -90,13 +90,13 @@ public static class Backend
     {
         var (year, day) = options;
         var content = (await File
-                .ReadAllTextAsync(GetSolutionTemplatePath()))
-            .Replace(YearToken, year.ToString())
-            .Replace(DayToken, day.ToString());
-        var dir = Path.Combine(GetSolutionsProjectRootDirectory(), year.ToString(), day.ToString());
+                .ReadAllTextAsync(PathsProvider.GetSolutionTemplatePath()))
+            .Replace(Constants.YearToken, year.ToString())
+            .Replace(Constants.DayToken, day.ToString());
+        var dir = Path.Combine(PathsProvider.GetSolutionsProjectRootDirectory(), year.ToString(), day.ToString());
 
         Directory.CreateDirectory(dir);
-        var file = Path.Combine(dir, SolutionFileName);
+        var file = Path.Combine(dir, Constants.SolutionFileName);
         if (File.Exists(file))
             throw new Exception($"Solution file already exists: {file}");
         await File.WriteAllTextAsync(file, content);
@@ -116,7 +116,7 @@ public static class Backend
 
 public class Tests
 {
-    private static AdventOfCodeAPI api => new(File.ReadAllText(GetCookieFilePath()));
+    private static AdventOfCodeAPI api => new(File.ReadAllText(PathsProvider.GetCookieFilePath()));
     
     private const int Year = 2023;
     private const int Day = 5;
@@ -126,7 +126,7 @@ public class Tests
     {
         var input = await api.GetInput((Year, Day));
         Assert.NotEmpty(input);
-        var path = GetInputFilePath((Year, Day));
+        var path = PathsProvider.GetInputFilePath((Year, Day));
         var exists = File.Exists(path);
         Assert.True(exists);
     }
@@ -136,7 +136,7 @@ public class Tests
     {
         var content = await api.GetInstructions((Year, Day));
         Assert.NotEmpty(content);
-        var path = GetInstructionsFilePath((Year, Day));
+        var path = PathsProvider.GetInstructionsFilePath((Year, Day));
         var exists = File.Exists(path);
         Assert.True(exists);
     }
@@ -145,7 +145,7 @@ public class Tests
     [InlineData("23750", 2023, 4, Level.PartOne)]
     public async Task Should_submit_correctly(string answer, int year, int day, Level level)
     {
-        var correct = await Backend.SubmitAnswer(answer, (year, day), level);
+        var correct = await PuzzleEngine.SubmitAnswer(answer, (year, day), level);
         Assert.True(correct);
     }
 
@@ -154,7 +154,7 @@ public class Tests
     public async Task Should_scaffold_new_solution(int year, int day)
     {
         // Check if exists
-        var success = await Backend.Start((year, day));
+        var success = await PuzzleEngine.Start((year, day));
         Assert.True(success);
     }
 }

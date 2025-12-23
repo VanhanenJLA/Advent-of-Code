@@ -9,7 +9,7 @@ public abstract class TestBase
 
     protected void DefaultTest(string? input, string expected, Level level)
     {
-        var (year, day) = Utilities.GetYearAndDay();
+        var (year, day) = PathsProvider.GetYearAndDay();
         var solutionName = $"Advent_of_Code._{year}._{day}.Solution";
         var type = Type.GetType(solutionName)
                    ?? throw new Exception($"Solution '{solutionName}' not found");
@@ -24,7 +24,7 @@ public abstract class TestBase
 
     private static string Initialize(string? input)
     {
-        var inputFilePath = Utilities
+        var inputFilePath = PathsProvider
             .GetSolutionFilePath()
             .Replace(SolutionFileName, InputTextFileName);
         return input

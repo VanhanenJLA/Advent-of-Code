@@ -1,6 +1,6 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using static Common.Utilities;
+using static Common.PathsProvider;
 
 namespace CLI;
 

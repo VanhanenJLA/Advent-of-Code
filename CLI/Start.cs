@@ -1,9 +1,9 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using Backend.Integrations;
+using Engine.Integrations;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
-using Backend;
+using Engine;
 
 namespace CLI;
 
@@ -39,7 +39,7 @@ public class StartCommand : Command
         {
             try
             {
-                var cookiePath = Common.Utilities.GetCookieFilePath();
+                var cookiePath = Common.PathsProvider.GetCookieFilePath();
                 if (!File.Exists(cookiePath))
                 {
                     AnsiConsole.MarkupLine("[red]Error: Session cookie not found.[/]");
@@ -56,16 +56,16 @@ public class StartCommand : Command
                     .StartAsync("Starting puzzle...", async ctx =>
                     {
                         ctx.Status("Scaffolding solution...");
-                        await Backend.Backend.CreateSolution(options);
+                        await PuzzleEngine.CreateSolution(options);
                         
                         ctx.Status("Fetching puzzle input...");
                         var input = await _api.GetInput(options);
-                        await Backend.Backend.SaveInput(input, options);
+                        await PuzzleEngine.SaveInput(input, options);
                         
                         ctx.Status("Fetching puzzle instructions...");
                         var content = await _api.GetInstructions(options);
-                        var instructions = Backend.Backend.ParseInstructions(content);
-                        Backend.Backend.SaveInstructions(options, instructions);
+                        var instructions = PuzzleEngine.ParseInstructions(content);
+                        PuzzleEngine.SaveInstructions(options, instructions);
                     });
 
                 AnsiConsole.MarkupLine($"[green]Successfully started puzzle for {Year}-{Day:D2}![/]");

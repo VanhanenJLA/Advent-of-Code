@@ -8,7 +8,7 @@ public static class Constants
     public const string SolutionTemplateFileName = "SolutionTemplate.txt";
     public const string InputTextFileName = "input.txt";
     public const string SolutionFileName = "Solution.cs";
-    public const string BackendProjectName = "Backend";
+    public const string EngineProjectName = "Engine";
     
     public const string YearToken = "¤YEAR¤";
     public const string DayToken = "¤DAY¤";
