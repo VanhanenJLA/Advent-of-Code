@@ -23,6 +23,7 @@ public static class Program
         // rootCommand.AddGlobalOption(jsonOption);
         rootCommand.AddCommand(new InputsCommand());
         rootCommand.AddCommand(new InstructionsCommand());
+        rootCommand.AddCommand(new ConfigCommand());
 
         var builder = new CommandLineBuilder(rootCommand)
             .UseHost(_ => Host.CreateDefaultBuilder(args), hostBuilder =>
@@ -32,7 +33,10 @@ public static class Program
                     // services.AddHttpClient();
                     services.AddTransient<AdventOfCodeAPI>(provider =>
                     {
-                        var cookie = File.ReadAllText(GetCookieFilePath());
+                        var path = GetCookieFilePath();
+                        if (!File.Exists(path))
+                            throw new Exception("Session cookie not found. Please run 'aoc config --session <value>' first.");
+                        var cookie = File.ReadAllText(path);
                         return new AdventOfCodeAPI(cookie);
                     });
                     // services.AddTransient<IOutputFormatter, ConsoleOutputFormatter>();

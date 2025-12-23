@@ -38,7 +38,13 @@ public static class Utilities
         => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "Solutions");
 
     public static string GetCookieFilePath()
-        => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "DeveloperClient", CookieFilename);
+    {
+        var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+        var folder = Path.Combine(home, ".aoc");
+        if (!Directory.Exists(folder)) 
+            Directory.CreateDirectory(folder);
+        return Path.Combine(folder, CookieFilename);
+    }
     
     public static string GetSolutionTemplatePath()
         => Path.Combine(GetSourceRootDirectory(), DeveloperClientProjectName, SolutionTemplateFileName);
