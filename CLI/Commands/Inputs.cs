@@ -1,7 +1,7 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Text.Json;
-using Engine.Integrations;
+using Engine;
 using Microsoft.Extensions.Logging;
 
 namespace CLI;
@@ -34,15 +34,15 @@ public class GetInputCommand : Command
 
     public new class Handler : ICommandHandler
     {
-        private readonly AdventOfCodeAPI _api;
+        private readonly IPuzzleEngine _puzzleEngine;
         private readonly ILogger<Handler> _logger;
-        public int Day { get; set; }
-        public int? Year { get; set; }
+        private int? Day { get; set; }
+        private int? Year { get; set; }
         public bool Json { get; set; }
 
-        public Handler(AdventOfCodeAPI api, ILogger<Handler> logger)
+        public Handler(IPuzzleEngine puzzleEngine, ILogger<Handler> logger)
         {
-            _api = api;
+            _puzzleEngine = puzzleEngine;
             _logger = logger;
         }
 
@@ -50,15 +50,15 @@ public class GetInputCommand : Command
         {
             try
             {
-                Year ??= DateOnly.FromDateTime(DateTime.Now).Year - 1;
-                var item = await _api.GetInput((Year.Value, Day));
-                Output(item);
+                Year ??= 2020;
+                Day ??= 20;
+                var input = await _puzzleEngine.GetInput((Year.Value, Day.Value));
+                Output(input);
                 return 0;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving data from API");
-                await Console.Error.WriteLineAsync($"Failed to retrieve data: {ex.Message}");
+                _logger.LogError(ex, "Error retrieving puzzle input");
                 return 1;
             }
         }
@@ -68,7 +68,7 @@ public class GetInputCommand : Command
             if (Json)
             {
                 // Serialize the data object to JSON
-                string json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+                var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
                 Console.WriteLine(json);
             }
             else
