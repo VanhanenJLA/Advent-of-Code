@@ -8,6 +8,7 @@ public class AdventOfCodeAPI
 
     public AdventOfCodeAPI(string cookie)
     {
+        _client.BaseAddress = new Uri("https://adventofcode.com/");
         _client.DefaultRequestHeaders.Add("Cookie", $"session={cookie}");
     }
 
@@ -17,7 +18,7 @@ public class AdventOfCodeAPI
     private async Task<string> Get((int year, int day) options, bool input = false)
     {
         var (year, day) = options;
-        var url = $"https://adventofcode.com/{year}/day/{day}";
+        var url = $"{year}/day/{day}";
         if (input) url += "/input";
 
         var response = await _client.GetAsync(url);
@@ -29,7 +30,7 @@ public class AdventOfCodeAPI
     public async Task<string> SubmitAnswer(string answer, (int year, int day) options, Level level)
     {
         var (year, day) = options;
-        var url = $"https://adventofcode.com/{year}/day/{day}/answer";
+        var url = $"{year}/day/{day}/answer";
 
         var content = new FormUrlEncodedContent(
             new Dictionary<string, string>
