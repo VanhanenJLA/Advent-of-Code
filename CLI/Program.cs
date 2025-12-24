@@ -2,6 +2,7 @@
 using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
 using System.CommandLine.Parsing;
+using Engine;
 using Engine.Integrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -32,6 +33,7 @@ public static class Program
                 hostBuilder.ConfigureServices((_, services) =>
                 {
                     // services.AddHttpClient();
+                    services.AddTransient<IPuzzleEngine, PuzzleEngine>();
                     services.AddTransient<AdventOfCodeAPI>(provider =>
                     {
                         var path = GetCookieFilePath();

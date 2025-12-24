@@ -4,11 +4,19 @@ using Engine.Integrations;
 
 namespace Engine;
 
-public static class PuzzleEngine
+public interface IPuzzleEngine
 {
-    private static AdventOfCodeAPI api => new(File.ReadAllText(PathsProvider.GetCookieFilePath()));
+    Task<string> GetInput((int year, int day) options);
+    Task<string> GetInstructions((int year, int day) options);
+    Task<bool> SubmitAnswer(string answer, (int year, int day) options, Level level = Level.PartOne);
+    Task<bool> Start((int year, int day) options);
+}
 
-    public static HtmlNodeCollection ParseInstructions(string content)
+public class PuzzleEngine : IPuzzleEngine
+{
+    private static AdventOfCodeAPI api => new(File.ReadAllText(GetCookieFilePath()));
+
+    public HtmlNodeCollection ParseInstructions(string content)
     {
         var doc = new HtmlDocument();
         doc.LoadHtml(content);
@@ -18,11 +26,80 @@ public static class PuzzleEngine
             throw new Exception("Article node not found.");
         return nodes;
     }
+    
+    public async Task<bool> Start((int year, int day) options)
+    {
+        var (year, day) = options;
+        var success = await CreateSolution((year, day));
+        if (!success) 
+            throw new Exception("Solution creation failed.");
+        await GetInput((year, day));
+        await GetInstructions((year, day));
+        return true;
+    }
 
-    public static void SaveInstructions((int year, int day) options, HtmlNodeCollection articles)
+    public async Task<string> GetInput((int year, int day) options)
+    {
+        var path = GetInputFilePath(options);
+        if (File.Exists(path))
+            return await File.ReadAllTextAsync(path);
+
+        var input = await api.GetInput(options);
+        await SaveInput(input, options);
+        return input;
+    }
+
+    public async Task<string> GetInstructions((int year, int day) options)
+    {
+        var path = GetInstructionsFilePath(options);
+        if (File.Exists(path))
+            return await File.ReadAllTextAsync(path);
+
+        var content = await api.GetInstructions(options);
+        var instructions = ParseInstructions(content);
+        SaveInstructions(options, instructions);
+        
+        return await File.ReadAllTextAsync(path);
+    }
+
+    public async Task<bool> SubmitAnswer(string answer, (int year, int day) options, Level level = Level.PartOne)
+    {
+        var (year, day) = options;
+        var response = await api.SubmitAnswer(answer, (year, day), level);
+
+        if (response.Contains(CorrectAnswerResponse))
+            return true;
+
+        if (response.Contains(IncorrectAnswerResponse))
+            return false;
+
+        // if (response.Contains(AlreadySolvedResponse))
+        //     return true;
+
+        throw new Exception($"Unmapped response: {response}");
+    }
+
+    private static async Task<bool> CreateSolution((int year, int day) options)
+    {
+        var (year, day) = options;
+        var content = (await File
+                .ReadAllTextAsync(GetSolutionTemplatePath()))
+            .Replace(YearToken, year.ToString())
+            .Replace(DayToken, day.ToString());
+        var dir = Path.Combine(GetSolutionsProjectRootDirectory(), year.ToString(), day.ToString());
+
+        Directory.CreateDirectory(dir);
+        var file = Path.Combine(dir, SolutionFileName);
+        if (File.Exists(file))
+            throw new Exception($"Solution file already exists: {file}");
+        await File.WriteAllTextAsync(file, content);
+        return true;
+    }
+    
+    private static void SaveInstructions((int year, int day) options, HtmlNodeCollection articles)
     {
         var template = new HtmlDocument();
-        template.Load(PathsProvider.GetInstructionsTemplateFilePath());
+        template.Load(GetInstructionsTemplateFilePath());
 
         var body =template
             .DocumentNode
@@ -33,100 +110,29 @@ public static class PuzzleEngine
             body.AppendChild(a);
         }
 
-        File.WriteAllText(PathsProvider.GetInstructionsFilePath(options), template.DocumentNode.OuterHtml);
+        File.WriteAllText(GetInstructionsFilePath(options), template.DocumentNode.OuterHtml);
     }
 
-    public static async Task<bool> SaveInput(string input, (int year, int day) options)
+    private static async Task<bool> SaveInput(string input, (int year, int day) options)
     {
-        await File.WriteAllTextAsync(PathsProvider.GetInputFilePath(options), input.ReplaceLineEndings());
-        return true;
-    }
-
-    private static async Task<string> GetInput((int year, int day) options)
-    {
-        var path = PathsProvider.GetInputFilePath(options);
-        if (File.Exists(path))
-        {
-            return await File.ReadAllTextAsync(path);
-        }
-
-        var input = await api.GetInput(options);
-        await SaveInput(input, options);
-        return input;
-    }
-
-    private static async Task<string> GetInstructions((int year, int day) options)
-    {
-        var path = PathsProvider.GetInstructionsFilePath(options);
-        if (File.Exists(path))
-        {
-            return await File.ReadAllTextAsync(path);
-        }
-
-        var content = await api.GetInstructions(options);
-        var instructions = ParseInstructions(content);
-        SaveInstructions(options, instructions);
-        return await File.ReadAllTextAsync(path);
-    }
-
-    public static async Task<bool> SubmitAnswer(string answer, (int year, int day) options, Level level = Level.PartOne)
-    {
-        var (year, day) = options;
-        var response = await api.SubmitAnswer(answer, (year, day), level);
-
-        if (response.Contains(Constants.CorrectAnswerResponse))
-            return true;
-
-        if (response.Contains(Constants.IncorrectAnswerResponse))
-            return false;
-
-        if (response.Contains(Constants.AlreadySolvedResponse))
-            return true;
-
-        throw new Exception($"Unmapped response: {response}");
-    }
-
-    public static async Task<bool> CreateSolution((int year, int day) options)
-    {
-        var (year, day) = options;
-        var content = (await File
-                .ReadAllTextAsync(PathsProvider.GetSolutionTemplatePath()))
-            .Replace(Constants.YearToken, year.ToString())
-            .Replace(Constants.DayToken, day.ToString());
-        var dir = Path.Combine(PathsProvider.GetSolutionsProjectRootDirectory(), year.ToString(), day.ToString());
-
-        Directory.CreateDirectory(dir);
-        var file = Path.Combine(dir, Constants.SolutionFileName);
-        if (File.Exists(file))
-            throw new Exception($"Solution file already exists: {file}");
-        await File.WriteAllTextAsync(file, content);
-        return true;
-    }
-
-    public static async Task<bool> Start((int year, int day) options)
-    {
-        var (year, day) = options;
-        var success = await CreateSolution((year, day));
-        if (!success) throw new Exception("Solution creation failed.");
-        await GetInput((year, day));
-        await GetInstructions((year, day));
+        await File.WriteAllTextAsync(GetInputFilePath(options), input.ReplaceLineEndings());
         return true;
     }
 }
 
 public class Tests
 {
-    private static AdventOfCodeAPI api => new(File.ReadAllText(PathsProvider.GetCookieFilePath()));
+    private static PuzzleEngine PuzzleEngine => new();
     
-    private const int Year = 2023;
-    private const int Day = 5;
+    private const int Year = 2020;
+    private const int Day = 20;
 
     [Fact]
     public async Task Should_fetch_and_save_puzzle_input()
     {
-        var input = await api.GetInput((Year, Day));
+        var input = await PuzzleEngine.GetInput((Year, Day));
         Assert.NotEmpty(input);
-        var path = PathsProvider.GetInputFilePath((Year, Day));
+        var path = GetInputFilePath((Year, Day));
         var exists = File.Exists(path);
         Assert.True(exists);
     }
@@ -134,9 +140,9 @@ public class Tests
     [Fact]
     public async Task Should_fetch_and_save_puzzle_instructions()
     {
-        var content = await api.GetInstructions((Year, Day));
+        var content = await PuzzleEngine.GetInstructions((Year, Day));
         Assert.NotEmpty(content);
-        var path = PathsProvider.GetInstructionsFilePath((Year, Day));
+        var path = GetInstructionsFilePath((Year, Day));
         var exists = File.Exists(path);
         Assert.True(exists);
     }
@@ -150,7 +156,7 @@ public class Tests
     }
 
     [Theory]
-    [InlineData(2025, 1)]
+    [InlineData(2020, 20)]
     public async Task Should_scaffold_new_solution(int year, int day)
     {
         // Check if exists

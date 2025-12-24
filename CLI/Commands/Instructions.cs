@@ -39,15 +39,15 @@ public class GetInstructionCommand : Command
 
     public new class Handler : ICommandHandler
     {
-        private readonly AdventOfCodeAPI _api;
+        private readonly PuzzleEngine _puzzleEngine;
         private readonly ILogger<Handler> _logger;
         public int Day { get; set; }
         public int? Year { get; set; }
         public bool Json { get; set; }
 
-        public Handler(AdventOfCodeAPI api, ILogger<Handler> logger)
+        public Handler(PuzzleEngine puzzleEngine, ILogger<Handler> logger)
         {
-            _api = api;
+            _puzzleEngine = puzzleEngine;
             _logger = logger;
         }
 
@@ -56,8 +56,8 @@ public class GetInstructionCommand : Command
             try
             {
                 Year ??= DateOnly.FromDateTime(DateTime.Now).Year - 1;
-                var item = await _api.GetInstructions((Year.Value, Day));
-                var articles = PuzzleEngine.ParseInstructions(item);
+                var instructions = await _puzzleEngine.GetInstructions((Year.Value, Day));
+                var articles = _puzzleEngine.ParseInstructions(instructions);
                 foreach (var a in articles)
                 {
                     var markup = HtmlToSpectreConverter.ConvertHtmlToSpectreMarkup(a.OuterHtml);

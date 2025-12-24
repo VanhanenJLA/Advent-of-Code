@@ -15,7 +15,7 @@ public abstract class TestBase
                    ?? throw new Exception($"Solution '{solutionName}' not found");
         var solution = Activator.CreateInstance(type) as ISolution
                        ?? throw new Exception($"Solution Instance Creation failed.");
-        
+
         input = Initialize(input);
         var answer = solution.Solve(input, level);
         Assert.Equal(expected, answer);

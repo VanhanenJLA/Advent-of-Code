@@ -1,6 +1,5 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
-using Engine.Integrations;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using Engine;
@@ -24,14 +23,14 @@ public class StartCommand : Command
 
     public new class Handler : ICommandHandler
     {
-        private readonly AdventOfCodeAPI _api;
+        private readonly PuzzleEngine _puzzleEngine;
         private readonly ILogger<Handler> _logger;
-        public int Day { get; set; }
+        public int? Day { get; set; }
         public int? Year { get; set; }
 
-        public Handler(AdventOfCodeAPI api, ILogger<Handler> logger)
+        public Handler(PuzzleEngine puzzleEngine, ILogger<Handler> logger)
         {
-            _api = api;
+            _puzzleEngine = puzzleEngine;
             _logger = logger;
         }
 
@@ -47,24 +46,24 @@ public class StartCommand : Command
                     return 1;
                 }
 
-                Year ??= DateOnly.FromDateTime(DateTime.Now).Year;
-                if (Day == 0) Day = DateTime.Now.Day;
+                Year ??= 2020;
+                Day ??= 20;
+                // Maybe have some sensible defaults such as initialize current day if not provided and christmas.
+                // However got to remember to handle edge case like local time vs. aoc time and puzzle not yet released.
 
-                var options = (Year.Value, Day);
+                var options = (Year.Value, Day.Value);
 
                 await AnsiConsole.Status()
                     .StartAsync("Starting puzzle...", async ctx =>
                     {
                         ctx.Status("Scaffolding solution...");
-                        await PuzzleEngine.CreateSolution(options);
+                        await _puzzleEngine.Start(options);
                         
                         ctx.Status("Fetching puzzle input...");
-                        var input = await _api.GetInput(options);
+                        var input = await _puzzleEngine.GetInput(options);
                         
                         ctx.Status("Fetching puzzle instructions...");
-                        var content = await _api.GetInstructions(options);
-                        var instructions = PuzzleEngine.ParseInstructions(content);
-                        PuzzleEngine.SaveInstructions(options, instructions);
+                        var content = await _puzzleEngine.GetInstructions(options);
                     });
 
                 AnsiConsole.MarkupLine($"[green]Successfully started puzzle for {Year}-{Day:D2}![/]");
