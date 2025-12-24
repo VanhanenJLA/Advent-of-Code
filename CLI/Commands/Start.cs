@@ -60,7 +60,6 @@ public class StartCommand : Command
                         
                         ctx.Status("Fetching puzzle input...");
                         var input = await _api.GetInput(options);
-                        await PuzzleEngine.SaveInput(input, options);
                         
                         ctx.Status("Fetching puzzle instructions...");
                         var content = await _api.GetInstructions(options);
