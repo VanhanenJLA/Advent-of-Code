@@ -10,6 +10,7 @@ public interface IPuzzleEngine
     Task<string> GetInstructions((int year, int day) options);
     Task<bool> SubmitAnswer(string answer, (int year, int day) options, Level level = Level.PartOne);
     Task<bool> Start((int year, int day) options);
+    HtmlAgilityPack.HtmlNodeCollection ParseInstructions(string content);
 }
 
 public class PuzzleEngine : IPuzzleEngine

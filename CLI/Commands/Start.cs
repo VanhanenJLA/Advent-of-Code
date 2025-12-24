@@ -23,12 +23,12 @@ public class StartCommand : Command
 
     public new class Handler : ICommandHandler
     {
-        private readonly PuzzleEngine _puzzleEngine;
+        private readonly IPuzzleEngine _puzzleEngine;
         private readonly ILogger<Handler> _logger;
         public int? Day { get; set; }
         public int? Year { get; set; }
 
-        public Handler(PuzzleEngine puzzleEngine, ILogger<Handler> logger)
+        public Handler(IPuzzleEngine puzzleEngine, ILogger<Handler> logger)
         {
             _puzzleEngine = puzzleEngine;
             _logger = logger;

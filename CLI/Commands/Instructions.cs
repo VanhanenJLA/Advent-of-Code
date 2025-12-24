@@ -2,9 +2,6 @@
 using System.CommandLine.Invocation;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Engine.Integrations;
-using static Common.PathsProvider;
-using static Common.Constants;
 using Engine;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
@@ -39,13 +36,13 @@ public class GetInstructionCommand : Command
 
     public new class Handler : ICommandHandler
     {
-        private readonly PuzzleEngine _puzzleEngine;
+        private readonly IPuzzleEngine _puzzleEngine;
         private readonly ILogger<Handler> _logger;
         public int Day { get; set; }
         public int? Year { get; set; }
         public bool Json { get; set; }
 
-        public Handler(PuzzleEngine puzzleEngine, ILogger<Handler> logger)
+        public Handler(IPuzzleEngine puzzleEngine, ILogger<Handler> logger)
         {
             _puzzleEngine = puzzleEngine;
             _logger = logger;
