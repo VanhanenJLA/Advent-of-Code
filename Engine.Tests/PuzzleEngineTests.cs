@@ -43,11 +43,7 @@ public class PuzzleEngineTests
     [InlineData(2020, 20)]
     public async Task Should_scaffold_new_solution(int year, int day)
     {
-        var dir = Path.Combine(GetSolutionsProjectRootDirectory(), year.ToString(), day.ToString());
-        if (Directory.Exists(dir))
-        {
-            Directory.Delete(dir, true);
-        }
+        await PuzzleEngine.Unstart((year, day));
 
         var success = await PuzzleEngine.Start((year, day));
         Assert.True(success);
