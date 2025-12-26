@@ -11,6 +11,7 @@ public interface IPuzzleEngine
     Task<string> GetInstructions((int year, int day) options);
     Task<bool> SubmitAnswer(string answer, (int year, int day) options, Level level = Level.PartOne);
     Task<bool> Start((int year, int day) options);
+    Task<bool> Unstart((int year, int day) options);
     HtmlNodeCollection ParseInstructions(string content);
 }
 
@@ -44,6 +45,21 @@ public class PuzzleEngine : IPuzzleEngine
         await GetInput((year, day));
         await GetInstructions((year, day));
         return true;
+    }
+
+    public async Task<bool> Unstart((int year, int day) options)
+    {
+        var (year, day) = options;
+        var dir = Path.Combine(GetSolutionsProjectRootDirectory(), year.ToString(), day.ToString());
+        if (Directory.Exists(dir))
+        {
+            Directory.Delete(dir, true);
+            _logger.LogInformation("Removed solution directory for {Year}/{Day}", year, day);
+            return await Task.FromResult(true);
+        }
+        
+        _logger.LogWarning("Solution directory for {Year}/{Day} not found at {Path}", year, day, dir);
+        return await Task.FromResult(false);
     }
 
     public async Task<string> GetInput((int year, int day) options)
