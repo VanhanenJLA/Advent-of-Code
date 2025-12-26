@@ -21,7 +21,7 @@ public static class PathsProvider
     }
     
     public static string GetSolutionTemplatePath()
-        => Path.Combine(GetSourceRootDirectory(), EngineProjectName, SolutionTemplateFileName);
+        => Path.Combine(GetSourceRootDirectory(), EngineProjectName, "Resources", SolutionTemplateFileName);
 
     public static string GetInputFilePath((int year, int day) options)
     {
@@ -37,7 +37,7 @@ public static class PathsProvider
     }
 
     public static string GetInstructionsTemplateFilePath()
-        => Path.Combine(GetSourceRootDirectory(), EngineProjectName, InstructionsTemplateName);
+        => Path.Combine(GetSourceRootDirectory(), EngineProjectName, "Resources", InstructionsTemplateName);
 
     public static string GetSolutionFilePath()
     {
@@ -58,7 +58,7 @@ public static class PathsProvider
         static (string, string) ParseYearAndDayFromSolutionFilePath(string path)
         {
             var directoryName = Path.GetDirectoryName(path);
-            var parts = directoryName.Split(Path.DirectorySeparatorChar);
+            var parts = directoryName!.Split(Path.DirectorySeparatorChar);
             var year = parts[^2];
             var day = parts[^1];
             return (year, day);
