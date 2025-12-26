@@ -6,10 +6,10 @@ namespace Common;
 public static class PathsProvider
 {
     public static string GetSourceRootDirectory()
-        => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..");
+        => Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", ".."));
 
     public static string GetSolutionsProjectRootDirectory()
-        => Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "..", "..", "..", "..", "Solutions");
+        => Path.Combine(GetSourceRootDirectory(), "Solutions");
 
     public static string GetCookieFilePath()
     {
