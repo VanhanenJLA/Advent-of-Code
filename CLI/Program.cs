@@ -6,6 +6,7 @@ using Engine;
 using Engine.Integrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using static Common.PathsProvider;
 
 namespace CLI;
@@ -38,12 +39,22 @@ public static class Program
                     {
                         var path = GetCookieFilePath();
                         if (!File.Exists(path))
-                            throw new Exception("Session cookie not found. Please run 'aoc config --session <value>' first.");
+                            throw new Exception(
+                                "Session cookie not found. Please run 'aoc config --session <value>' first.");
                         var cookie = File.ReadAllText(path);
                         return new AdventOfCodeAPI(cookie);
                     });
                     // services.AddTransient<IOutputFormatter, ConsoleOutputFormatter>();
                 });
+
+                hostBuilder.ConfigureLogging(logging =>
+                {
+                    logging.ClearProviders();
+                    logging.AddFilter("Microsoft", LogLevel.Warning);
+                    logging.AddFilter("System", LogLevel.Warning);
+                    logging.SetMinimumLevel(LogLevel.Warning);
+                });
+
                 hostBuilder.UseCommandHandler<GetInputCommand, GetInputCommand.Handler>();
                 hostBuilder.UseCommandHandler<GetInstructionCommand, GetInstructionCommand.Handler>();
                 hostBuilder.UseCommandHandler<StartCommand, StartCommand.Handler>();

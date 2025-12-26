@@ -66,7 +66,7 @@ public class GetInstructionCommand : Command
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving data from API");
-                await Console.Error.WriteLineAsync($"Failed to retrieve data: {ex.Message}");
+                AnsiConsole.WriteException(ex);
                 return 1;
             }
         }
@@ -77,12 +77,12 @@ public class GetInstructionCommand : Command
             {
                 // Serialize the data object to JSON
                 string json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
-                Console.WriteLine(json);
+                AnsiConsole.WriteLine(json);
             }
             else
             {
                 // Default text output (could be simplified or formatted as needed)
-                Console.WriteLine(data?.ToString());
+                AnsiConsole.WriteLine(data?.ToString() ?? string.Empty);
             }
         }
 

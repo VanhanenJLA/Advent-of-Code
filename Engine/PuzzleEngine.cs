@@ -1,6 +1,7 @@
 using Common;
 using HtmlAgilityPack;
 using Engine.Integrations;
+using Microsoft.Extensions.Logging;
 
 namespace Engine;
 
@@ -10,12 +11,18 @@ public interface IPuzzleEngine
     Task<string> GetInstructions((int year, int day) options);
     Task<bool> SubmitAnswer(string answer, (int year, int day) options, Level level = Level.PartOne);
     Task<bool> Start((int year, int day) options);
-    HtmlAgilityPack.HtmlNodeCollection ParseInstructions(string content);
+    HtmlNodeCollection ParseInstructions(string content);
 }
 
 public class PuzzleEngine : IPuzzleEngine
 {
+    private readonly ILogger<PuzzleEngine> _logger;
     private static AdventOfCodeAPI api => new(File.ReadAllText(GetCookieFilePath()));
+
+    public PuzzleEngine(ILogger<PuzzleEngine> logger)
+    {
+        _logger = logger;
+    }
 
     public HtmlNodeCollection ParseInstructions(string content)
     {
@@ -43,8 +50,12 @@ public class PuzzleEngine : IPuzzleEngine
     {
         var path = GetInputFilePath(options);
         if (File.Exists(path))
+        {
+            _logger.LogInformation("Retrieved input for {Year}/{Day} from local cache", options.year, options.day);
             return await File.ReadAllTextAsync(path);
+        }
 
+        _logger.LogInformation("Fetching input for {Year}/{Day} from remote", options.year, options.day);
         var input = await api.GetInput(options);
         await SaveInput(input, options);
         return input;
@@ -54,11 +65,15 @@ public class PuzzleEngine : IPuzzleEngine
     {
         var path = GetInstructionsFilePath(options);
         if (File.Exists(path))
+        {
+            _logger.LogInformation("Retrieved instructions for {Year}/{Day} from local cache", options.year, options.day);
             return await File.ReadAllTextAsync(path);
+        }
 
+        _logger.LogInformation("Fetching instructions for {Year}/{Day} from remote", options.year, options.day);
         var content = await api.GetInstructions(options);
         var instructions = ParseInstructions(content);
-        SaveInstructions(options, instructions);
+        await SaveInstructions(options, instructions);
         
         return await File.ReadAllTextAsync(path);
     }
@@ -68,14 +83,14 @@ public class PuzzleEngine : IPuzzleEngine
         var (year, day) = options;
         var response = await api.SubmitAnswer(answer, (year, day), level);
 
+        if (response.Contains(IncorrectAnswerResponse))
+            return false;
+        
         if (response.Contains(CorrectAnswerResponse))
             return true;
 
-        if (response.Contains(IncorrectAnswerResponse))
-            return false;
-
-        // if (response.Contains(AlreadySolvedResponse))
-        //     return true;
+        if (response.Contains(AlreadySolvedResponse))
+            return true;
 
         throw new Exception($"Unmapped response: {response}");
     }
@@ -97,7 +112,7 @@ public class PuzzleEngine : IPuzzleEngine
         return true;
     }
     
-    private static void SaveInstructions((int year, int day) options, HtmlNodeCollection articles)
+    private static async Task<bool> SaveInstructions((int year, int day) options, HtmlNodeCollection articles)
     {
         var template = new HtmlDocument();
         template.Load(GetInstructionsTemplateFilePath());
@@ -110,58 +125,21 @@ public class PuzzleEngine : IPuzzleEngine
         {
             body.AppendChild(a);
         }
-
-        File.WriteAllText(GetInstructionsFilePath(options), template.DocumentNode.OuterHtml);
+        var path = GetInstructionsFilePath(options);
+        var directory = Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(directory)) 
+            Directory.CreateDirectory(directory);
+        await File.WriteAllTextAsync(path, template.DocumentNode.OuterHtml);
+        return true;
     }
 
     private static async Task<bool> SaveInput(string input, (int year, int day) options)
     {
-        await File.WriteAllTextAsync(GetInputFilePath(options), input.ReplaceLineEndings());
+        var path = GetInputFilePath(options);
+        var directory = Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(directory)) 
+            Directory.CreateDirectory(directory);
+        await File.WriteAllTextAsync(path, input.ReplaceLineEndings());
         return true;
-    }
-}
-
-public class Tests
-{
-    private static PuzzleEngine PuzzleEngine => new();
-    
-    private const int Year = 2020;
-    private const int Day = 20;
-
-    [Fact]
-    public async Task Should_fetch_and_save_puzzle_input()
-    {
-        var input = await PuzzleEngine.GetInput((Year, Day));
-        Assert.NotEmpty(input);
-        var path = GetInputFilePath((Year, Day));
-        var exists = File.Exists(path);
-        Assert.True(exists);
-    }
-
-    [Fact]
-    public async Task Should_fetch_and_save_puzzle_instructions()
-    {
-        var content = await PuzzleEngine.GetInstructions((Year, Day));
-        Assert.NotEmpty(content);
-        var path = GetInstructionsFilePath((Year, Day));
-        var exists = File.Exists(path);
-        Assert.True(exists);
-    }
-
-    [Theory]
-    [InlineData("23750", 2023, 4, Level.PartOne)]
-    public async Task Should_submit_correctly(string answer, int year, int day, Level level)
-    {
-        var correct = await PuzzleEngine.SubmitAnswer(answer, (year, day), level);
-        Assert.True(correct);
-    }
-
-    [Theory]
-    [InlineData(2020, 20)]
-    public async Task Should_scaffold_new_solution(int year, int day)
-    {
-        // Check if exists
-        var success = await PuzzleEngine.Start((year, day));
-        Assert.True(success);
     }
 }

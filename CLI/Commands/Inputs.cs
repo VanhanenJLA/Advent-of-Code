@@ -3,6 +3,7 @@ using System.CommandLine.Invocation;
 using System.Text.Json;
 using Engine;
 using Microsoft.Extensions.Logging;
+using Spectre.Console;
 
 namespace CLI;
 
@@ -59,6 +60,7 @@ public class GetInputCommand : Command
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving puzzle input");
+                AnsiConsole.WriteException(ex);
                 return 1;
             }
         }
@@ -69,12 +71,12 @@ public class GetInputCommand : Command
             {
                 // Serialize the data object to JSON
                 var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
-                Console.WriteLine(json);
+                AnsiConsole.WriteLine(json);
             }
             else
             {
                 // Default text output (could be simplified or formatted as needed)
-                Console.WriteLine(data?.ToString());
+                AnsiConsole.WriteLine(data?.ToString() ?? string.Empty);
             }
         }
 

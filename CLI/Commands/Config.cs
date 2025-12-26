@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using Spectre.Console;
 using static Common.PathsProvider;
 
 namespace CLI;
@@ -21,12 +22,12 @@ public class ConfigCommand : Command
     {
         if (string.IsNullOrWhiteSpace(session))
         {
-            Console.WriteLine("Please provide a session cookie value.");
+            AnsiConsole.MarkupLine("[red]Please provide a session cookie value.[/]");
             return;
         }
 
         var path = GetCookieFilePath();
         await File.WriteAllTextAsync(path, session.Trim());
-        Console.WriteLine($"Session cookie saved to: {path}");
+        AnsiConsole.MarkupLine($"[green]Session cookie saved to:[/] {path}");
     }
 }
