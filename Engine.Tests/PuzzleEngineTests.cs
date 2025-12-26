@@ -33,7 +33,7 @@ public class PuzzleEngineTests
 
     [Theory]
     [InlineData("23750", 2023, 4, Level.PartOne)]
-    public async Task Should_submit_correctly(string answer, int year, int day, Level level)
+    public async Task Submitting_correct_answer_should_succeed(string answer, int year, int day, Level level)
     {
         var correct = await PuzzleEngine.SubmitAnswer(answer, (year, day), level);
         Assert.True(correct);
