@@ -31,6 +31,12 @@ public class GetInstructionCommand : Command
             "Year to retrieve.");
         AddOption(yearOption);
         
+        var forceOption = new Option<bool>(
+            ["--force", "-f"],
+            () => false,
+            "Ignore cached instructions and retrieve fresh data from the API.");
+        AddOption(forceOption);
+        
         // (The global --json option is automatically available from the root command)
     }
 
@@ -40,6 +46,7 @@ public class GetInstructionCommand : Command
         private readonly ILogger<Handler> _logger;
         public int Day { get; set; }
         public int? Year { get; set; }
+        public bool Force { get; set; }
         public bool Json { get; set; }
 
         public Handler(IPuzzleEngine puzzleEngine, ILogger<Handler> logger)
@@ -53,7 +60,7 @@ public class GetInstructionCommand : Command
             try
             {
                 Year ??= DateOnly.FromDateTime(DateTime.Now).Year - 1;
-                var instructions = await _puzzleEngine.GetInstructions((Year.Value, Day));
+                var instructions = await _puzzleEngine.GetInstructions((Year.Value, Day), Force);
                 var articles = _puzzleEngine.ParseInstructions(instructions);
                 foreach (var a in articles)
                 {

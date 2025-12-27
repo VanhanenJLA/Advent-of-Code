@@ -7,8 +7,8 @@ namespace Engine;
 
 public interface IPuzzleEngine
 {
-    Task<string> GetInput((int year, int day) options);
-    Task<string> GetInstructions((int year, int day) options);
+    Task<string> GetInput((int year, int day) options, bool forceRefresh = false);
+    Task<string> GetInstructions((int year, int day) options, bool forceRefresh = false);
     Task<bool> SubmitAnswer(string answer, (int year, int day) options, Level level = Level.PartOne);
     Task<bool> Start((int year, int day) options);
     Task<bool> Unstart((int year, int day) options);
@@ -62,7 +62,7 @@ public class PuzzleEngine : IPuzzleEngine
         return await Task.FromResult(false);
     }
 
-    public async Task<string> GetInput((int year, int day) options)
+    public async Task<string> GetInput((int year, int day) options, bool forceRefresh = false)
     {
         var path = GetInputFilePath(options);
         if (File.Exists(path))
@@ -77,10 +77,11 @@ public class PuzzleEngine : IPuzzleEngine
         return input;
     }
 
-    public async Task<string> GetInstructions((int year, int day) options)
+    public async Task<string> GetInstructions((int year, int day) options, bool forceRefresh = false)
     {
         var path = GetInstructionsFilePath(options);
-        if (File.Exists(path))
+        
+        if (!forceRefresh && File.Exists(path))
         {
             _logger.LogInformation("Retrieved instructions for {Year}/{Day} from local cache", options.year, options.day);
             return await File.ReadAllTextAsync(path);
@@ -102,11 +103,25 @@ public class PuzzleEngine : IPuzzleEngine
         if (response.Contains(IncorrectAnswerResponse))
             return false;
         
-        if (response.Contains(CorrectAnswerResponse))
-            return true;
-
         if (response.Contains(AlreadySolvedResponse))
             return true;
+
+        if (response.Contains(CorrectAnswerResponse))
+        {
+            if (level != Level.PartOne) 
+                return true;
+            
+            // We're advanced to part two so refresh instructions for Part Two.
+            var instructionsPath = GetInstructionsFilePath(options);
+            if (File.Exists(instructionsPath))
+            {
+                File.Delete(instructionsPath);
+            }
+
+            var instructions = await GetInstructions(options);
+            return true;
+        }
+            
 
         throw new Exception($"Unmapped response: {response}");
     }

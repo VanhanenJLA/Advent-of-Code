@@ -28,6 +28,7 @@ public static class Program
         rootCommand.AddCommand(new ConfigCommand());
         rootCommand.AddCommand(new StartCommand());
         rootCommand.AddCommand(new RemoveCommand());
+        rootCommand.AddCommand(new SubmitCommand());
 
         var builder = new CommandLineBuilder(rootCommand)
             .UseHost(_ => Host.CreateDefaultBuilder(args), hostBuilder =>
@@ -60,6 +61,7 @@ public static class Program
                 hostBuilder.UseCommandHandler<GetInstructionCommand, GetInstructionCommand.Handler>();
                 hostBuilder.UseCommandHandler<StartCommand, StartCommand.Handler>();
                 hostBuilder.UseCommandHandler<RemoveCommand, RemoveCommand.Handler>();
+                hostBuilder.UseCommandHandler<SubmitCommand, SubmitCommand.Handler>();
             })
             .UseDefaults()
             .Build();

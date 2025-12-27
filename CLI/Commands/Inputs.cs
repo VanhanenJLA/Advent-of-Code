@@ -29,16 +29,23 @@ public class GetInputCommand : Command
             ["--year", "-y"],
             "Year to retrieve.");
         AddOption(yearOption);
-        
-        // (The global --json option is automatically available from the root command)
-    }
 
+
+        // (The global --json option is automatically available from the root command)
+        var forceOption = new Option<bool>(
+            ["--force", "-f"],
+            () => false,
+            "Ignore cached input and retrieve fresh data from the API.");
+        AddOption(forceOption);
+    }
+    
     public new class Handler : ICommandHandler
     {
         private readonly IPuzzleEngine _puzzleEngine;
         private readonly ILogger<Handler> _logger;
         private int? Day { get; set; }
         private int? Year { get; set; }
+        public bool Force { get; set; }
         public bool Json { get; set; }
 
         public Handler(IPuzzleEngine puzzleEngine, ILogger<Handler> logger)
@@ -53,7 +60,7 @@ public class GetInputCommand : Command
             {
                 Year ??= 2020;
                 Day ??= 20;
-                var input = await _puzzleEngine.GetInput((Year.Value, Day.Value));
+                var input = await _puzzleEngine.GetInput((Year.Value, Day.Value), Force);
                 Output(input);
                 return 0;
             }
