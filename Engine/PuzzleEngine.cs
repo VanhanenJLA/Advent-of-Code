@@ -11,7 +11,7 @@ public interface IPuzzleEngine
     Task<string> GetInstructions((int year, int day) options, bool forceRefresh = false);
     Task<bool> SubmitAnswer(string answer, (int year, int day) options, Level level = Level.PartOne);
     Task<bool> Start((int year, int day) options);
-    Task<bool> Unstart((int year, int day) options);
+    Task<bool> Unstart((int year, int? day) options);
     HtmlNodeCollection ParseInstructions(string content);
 }
 
@@ -47,18 +47,28 @@ public class PuzzleEngine : IPuzzleEngine
         return true;
     }
 
-    public async Task<bool> Unstart((int year, int day) options)
+    public async Task<bool> Unstart((int year, int? day) options)
     {
         var (year, day) = options;
-        var dir = Path.Combine(GetSolutionsProjectRootDirectory(), year.ToString(), day.ToString());
+        var dir = day.HasValue
+            ? Path.Combine(GetSolutionsProjectRootDirectory(), year.ToString(), day.Value.ToString())
+            : Path.Combine(GetSolutionsProjectRootDirectory(), year.ToString());
+
         if (Directory.Exists(dir))
         {
             Directory.Delete(dir, true);
-            _logger.LogInformation("Removed solution directory for {Year}/{Day}", year, day);
+            if (day.HasValue)
+                _logger.LogInformation("Removed solution directory for {Year}/{Day}", year, day.Value);
+            else
+                _logger.LogInformation("Removed solution directory for year {Year}", year);
             return await Task.FromResult(true);
         }
-        
-        _logger.LogWarning("Solution directory for {Year}/{Day} not found at {Path}", year, day, dir);
+
+        if (day.HasValue)
+            _logger.LogWarning("Solution directory for {Year}/{Day} not found at {Path}", year, day.Value, dir);
+        else
+            _logger.LogWarning("Solution directory for year {Year} not found at {Path}", year, dir);
+
         return await Task.FromResult(false);
     }
 

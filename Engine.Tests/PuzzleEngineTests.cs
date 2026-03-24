@@ -10,6 +10,7 @@ public class PuzzleEngineTests
     
     private const int Year = 2020;
     private const int Day = 20;
+    private const int SandboxYear = 2099;
 
     [Fact]
     public async Task Should_fetch_and_save_puzzle_input()
@@ -47,5 +48,23 @@ public class PuzzleEngineTests
 
         var success = await PuzzleEngine.Start((year, day));
         Assert.True(success);
+    }
+
+    [Fact]
+    public async Task Should_remove_entire_year_when_day_is_omitted()
+    {
+        var yearDirectory = Path.Combine(GetSolutionsProjectRootDirectory(), SandboxYear.ToString());
+        var dayDirectory = Path.Combine(yearDirectory, "1");
+
+        if (Directory.Exists(yearDirectory))
+            Directory.Delete(yearDirectory, true);
+
+        Directory.CreateDirectory(dayDirectory);
+        await File.WriteAllTextAsync(Path.Combine(dayDirectory, "input.txt"), "test");
+
+        var success = await PuzzleEngine.Unstart((SandboxYear, null));
+
+        Assert.True(success);
+        Assert.False(Directory.Exists(yearDirectory));
     }
 }

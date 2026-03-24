@@ -8,13 +8,13 @@ namespace CLI;
 
 public class RemoveCommand : Command
 {
-    public RemoveCommand() : base("remove", "Remove solution files for a puzzle (unstart)")
+    public RemoveCommand() : base("remove", "Remove solution files for a puzzle or an entire year")
     {
         AddAlias("unstart");
         
-        var dayOption = new Option<int>(
+        var dayOption = new Option<int?>(
             ["--day", "-d"],
-            "Day to remove.");
+            "Day to remove. If omitted, removes the entire year.");
         AddOption(dayOption);
         
         var yearOption = new Option<int>(
@@ -47,27 +47,29 @@ public class RemoveCommand : Command
             try
             {
                 Year ??= 2020;
-                Day ??= 20;
+                var target = Day.HasValue
+                    ? $"{Year}-{Day.Value:D2}"
+                    : $"the entire year {Year}";
 
                 if (!Force)
                 {
-                    if (!AnsiConsole.Confirm($"Are you sure you want to [red]remove[/] the solution for {Year}-{Day:D2}?"))
+                    if (!AnsiConsole.Confirm($"Are you sure you want to [red]remove[/] {target}?"))
                     {
                         AnsiConsole.MarkupLine("[yellow]Aborted.[/]");
                         return 0;
                     }
                 }
 
-                var options = (Year.Value, Day.Value);
+                var options = (Year.Value, Day);
                 var success = await _puzzleEngine.Unstart(options);
 
                 if (success)
                 {
-                    AnsiConsole.MarkupLine($"[green]Successfully removed solution for {Year}-{Day:D2}![/]");
+                    AnsiConsole.MarkupLine($"[green]Successfully removed {target}![/]");
                 }
                 else
                 {
-                    AnsiConsole.MarkupLine($"[yellow]No solution found for {Year}-{Day:D2} to remove.[/]");
+                    AnsiConsole.MarkupLine($"[yellow]No solution found for {target} to remove.[/]");
                 }
                 
                 return 0;
