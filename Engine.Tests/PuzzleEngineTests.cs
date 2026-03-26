@@ -67,4 +67,27 @@ public class PuzzleEngineTests
         Assert.True(success);
         Assert.False(Directory.Exists(yearDirectory));
     }
+
+    [Fact]
+    public async Task Should_sync_existing_solution_days_for_a_year()
+    {
+        var yearDirectory = Path.Combine(GetSolutionsProjectRootDirectory(), SandboxYear.ToString());
+        var firstDayDirectory = Path.Combine(yearDirectory, "1");
+        var secondDayDirectory = Path.Combine(yearDirectory, "2");
+
+        if (Directory.Exists(yearDirectory))
+            Directory.Delete(yearDirectory, true);
+
+        Directory.CreateDirectory(firstDayDirectory);
+        Directory.CreateDirectory(secondDayDirectory);
+
+        await File.WriteAllTextAsync(Path.Combine(firstDayDirectory, "Solution.cs"), "// test");
+        await File.WriteAllTextAsync(Path.Combine(secondDayDirectory, "Solution.cs"), "// test");
+        await File.WriteAllTextAsync(Path.Combine(firstDayDirectory, "input.txt"), "input-1");
+        await File.WriteAllTextAsync(Path.Combine(secondDayDirectory, "input.txt"), "input-2");
+
+        var syncedDays = await PuzzleEngine.SyncYear(SandboxYear);
+
+        Assert.Equal([1, 2], syncedDays);
+    }
 }

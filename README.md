@@ -51,6 +51,12 @@ Fetch input again and ignore the local cache:
 dotnet run --project CLI -- inputs get --year 2025 --day 1 --force
 ```
 
+Sync inputs and instructions for all existing solutions in a year:
+
+```pwsh
+dotnet run --project CLI -- sync --year 2025
+```
+
 Fetch instructions again and ignore the local cache:
 
 ```pwsh

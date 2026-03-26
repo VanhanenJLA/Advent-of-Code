@@ -11,6 +11,7 @@ public interface IPuzzleEngine
     Task<string> GetInstructions((int year, int day) options, bool forceRefresh = false);
     Task<bool> SubmitAnswer(string answer, (int year, int day) options, Level level = Level.PartOne);
     Task<bool> Start((int year, int day) options);
+    Task<IReadOnlyList<int>> SyncYear(int year, bool forceRefresh = false);
     Task<bool> Unstart((int year, int? day) options);
     HtmlNodeCollection ParseInstructions(string content);
 }
@@ -47,6 +48,33 @@ public class PuzzleEngine : IPuzzleEngine
         return true;
     }
 
+    public async Task<IReadOnlyList<int>> SyncYear(int year, bool forceRefresh = false)
+    {
+        var yearDirectory = Path.Combine(GetSolutionsProjectRootDirectory(), year.ToString());
+        if (!Directory.Exists(yearDirectory))
+        {
+            _logger.LogWarning("Solution directory for year {Year} not found at {Path}", year, yearDirectory);
+            return Array.Empty<int>();
+        }
+
+        var days = Directory
+            .EnumerateDirectories(yearDirectory)
+            .Select(Path.GetFileName)
+            .Where(name => int.TryParse(name, out _))
+            .Select(int.Parse)
+            .OrderBy(day => day)
+            .Where(day => File.Exists(Path.Combine(yearDirectory, day.ToString(), SolutionFileName)))
+            .ToArray();
+
+        foreach (var day in days)
+        {
+            await GetInput((year, day), forceRefresh);
+            await GetInstructions((year, day), forceRefresh);
+        }
+
+        return days;
+    }
+
     public async Task<bool> Unstart((int year, int? day) options)
     {
         var (year, day) = options;
@@ -75,7 +103,7 @@ public class PuzzleEngine : IPuzzleEngine
     public async Task<string> GetInput((int year, int day) options, bool forceRefresh = false)
     {
         var path = GetInputFilePath(options);
-        if (File.Exists(path))
+        if (!forceRefresh && File.Exists(path))
         {
             _logger.LogInformation("Retrieved input for {Year}/{Day} from local cache", options.year, options.day);
             return await File.ReadAllTextAsync(path);

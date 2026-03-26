@@ -27,6 +27,7 @@ public static class Program
         rootCommand.AddCommand(new InstructionsCommand());
         rootCommand.AddCommand(new ConfigCommand());
         rootCommand.AddCommand(new StartCommand());
+        rootCommand.AddCommand(new SyncCommand());
         rootCommand.AddCommand(new RemoveCommand());
         rootCommand.AddCommand(new SubmitCommand());
 
@@ -60,6 +61,7 @@ public static class Program
                 hostBuilder.UseCommandHandler<GetInputCommand, GetInputCommand.Handler>();
                 hostBuilder.UseCommandHandler<GetInstructionCommand, GetInstructionCommand.Handler>();
                 hostBuilder.UseCommandHandler<StartCommand, StartCommand.Handler>();
+                hostBuilder.UseCommandHandler<SyncCommand, SyncCommand.Handler>();
                 hostBuilder.UseCommandHandler<RemoveCommand, RemoveCommand.Handler>();
                 hostBuilder.UseCommandHandler<SubmitCommand, SubmitCommand.Handler>();
             })
