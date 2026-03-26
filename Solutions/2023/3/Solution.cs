@@ -15,7 +15,7 @@ public class Tests : TestBase
         DefaultTest(input, expected, level);
     }
     
-    [Theory]
+    [Theory(Skip = "Debug visualization test; not part of the normal test suite.")]
     [InlineData(Example)]
     public void Should_iterate_and_print_matrix(string schematic)
     {
