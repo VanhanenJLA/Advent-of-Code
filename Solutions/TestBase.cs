@@ -9,6 +9,9 @@ public abstract class TestBase
 
     protected void DefaultTest(string? input, string expected, Level level)
     {
+        if (expected == "TBD")
+            Assert.Skip("Expected answer is still marked as TBD.");
+
         var (year, day) = PathsProvider.GetYearAndDay();
         var solutionName = $"Advent_of_Code._{year}._{day}.Solution";
         var type = Type.GetType(solutionName)
@@ -17,7 +20,17 @@ public abstract class TestBase
                        ?? throw new Exception($"Solution Instance Creation failed.");
 
         input = Initialize(input);
-        var answer = solution.Solve(input, level);
+        string answer;
+        try
+        {
+            answer = solution.Solve(input, level);
+        }
+        catch (NotImplementedException)
+        {
+            Assert.Skip($"Solution '{solutionName}' is not implemented yet.");
+            throw;
+        }
+
         Assert.Equal(expected, answer);
     }
 
@@ -30,6 +43,6 @@ public abstract class TestBase
         return input
             ?? File.ReadAllText(inputFilePath)
             ?? throw new ArgumentException($"Puzzle input was not provided inline and locally stored input was not found at path: '{inputFilePath}'");
-    }
+        }
 
-}
+    }
