@@ -11,6 +11,7 @@ public class PuzzleEngineTests
     private const int Year = 2020;
     private const int Day = 20;
     private const int SandboxYear = 2099;
+    private const int CachedInputNormalizationDay = 3;
 
     [Fact]
     public async Task Should_fetch_and_save_puzzle_input()
@@ -89,5 +90,18 @@ public class PuzzleEngineTests
         var syncedDays = await PuzzleEngine.SyncYear(SandboxYear);
 
         Assert.Equal([1, 2], syncedDays);
+    }
+
+    [Fact]
+    public async Task Should_trim_terminating_linebreak_from_cached_input()
+    {
+        var dayDirectory = Path.Combine(GetSolutionsProjectRootDirectory(), SandboxYear.ToString(), CachedInputNormalizationDay.ToString());
+
+        Directory.CreateDirectory(dayDirectory);
+        await File.WriteAllTextAsync(Path.Combine(dayDirectory, "input.txt"), "line-1\r\nline-2\r\n");
+
+        var input = await PuzzleEngine.GetInput((SandboxYear, CachedInputNormalizationDay));
+
+        Assert.Equal("line-1\nline-2", input);
     }
 }

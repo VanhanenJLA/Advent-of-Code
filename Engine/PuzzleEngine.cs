@@ -106,11 +106,11 @@ public class PuzzleEngine : IPuzzleEngine
         if (!forceRefresh && File.Exists(path))
         {
             _logger.LogInformation("Retrieved input for {Year}/{Day} from local cache", options.year, options.day);
-            return await File.ReadAllTextAsync(path);
+            return NormalizeInput(await File.ReadAllTextAsync(path));
         }
 
         _logger.LogInformation("Fetching input for {Year}/{Day} from remote", options.year, options.day);
-        var input = await api.GetInput(options);
+        var input = NormalizeInput(await api.GetInput(options));
         await SaveInput(input, options);
         return input;
     }
@@ -208,7 +208,10 @@ public class PuzzleEngine : IPuzzleEngine
         var directory = Path.GetDirectoryName(path);
         if (!string.IsNullOrEmpty(directory)) 
             Directory.CreateDirectory(directory);
-        await File.WriteAllTextAsync(path, input.ReplaceLineEndings());
+        await File.WriteAllTextAsync(path, NormalizeInput(input));
         return true;
     }
+
+    private static string NormalizeInput(string input)
+        => input.ReplaceLineEndings().TrimEnd('\r', '\n');
 }
