@@ -79,17 +79,27 @@ public class PuzzleEngineTests
         if (Directory.Exists(yearDirectory))
             Directory.Delete(yearDirectory, true);
 
-        Directory.CreateDirectory(firstDayDirectory);
-        Directory.CreateDirectory(secondDayDirectory);
+        try
+        {
+            Directory.CreateDirectory(firstDayDirectory);
+            Directory.CreateDirectory(secondDayDirectory);
 
-        await File.WriteAllTextAsync(Path.Combine(firstDayDirectory, "Solution.cs"), "// test");
-        await File.WriteAllTextAsync(Path.Combine(secondDayDirectory, "Solution.cs"), "// test");
-        await File.WriteAllTextAsync(Path.Combine(firstDayDirectory, "input.txt"), "input-1");
-        await File.WriteAllTextAsync(Path.Combine(secondDayDirectory, "input.txt"), "input-2");
+            await File.WriteAllTextAsync(Path.Combine(firstDayDirectory, "Solution.cs"), "// test");
+            await File.WriteAllTextAsync(Path.Combine(secondDayDirectory, "Solution.cs"), "// test");
+            await File.WriteAllTextAsync(Path.Combine(firstDayDirectory, "input.txt"), "input-1");
+            await File.WriteAllTextAsync(Path.Combine(secondDayDirectory, "input.txt"), "input-2");
+            await File.WriteAllTextAsync(GetInstructionsFilePath((SandboxYear, 1)), "<html>cached instructions 1</html>");
+            await File.WriteAllTextAsync(GetInstructionsFilePath((SandboxYear, 2)), "<html>cached instructions 2</html>");
 
-        var syncedDays = await PuzzleEngine.SyncYear(SandboxYear);
+            var syncedDays = await PuzzleEngine.SyncYear(SandboxYear);
 
-        Assert.Equal([1, 2], syncedDays);
+            Assert.Equal([1, 2], syncedDays);
+        }
+        finally
+        {
+            if (Directory.Exists(yearDirectory))
+                Directory.Delete(yearDirectory, true);
+        }
     }
 
     [Fact]
