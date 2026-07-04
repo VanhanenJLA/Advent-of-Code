@@ -9,13 +9,14 @@ public class Tests : TestBase
 
     [Theory]
     [InlineData(Example, "4361", Level.PartOne)]
-    [InlineData(null, "TBD", Level.PartOne)]
+    [InlineData(Example, "467835", Level.PartTwo)]
     public override void Should_solve_correct_answer(string? input, string expected, Level level)
     {
         DefaultTest(input, expected, level);
     }
-    
+
     [Theory(Skip = "Debug visualization test; not part of the normal test suite.")]
+    // [Theory]
     [InlineData(Example)]
     public void Should_iterate_and_print_matrix(string schematic)
     {
@@ -24,33 +25,59 @@ public class Tests : TestBase
         {
             for (var x = 0; x < matrix.GetLength(1); x++)
             {
-                matrix.PrintMatrix((y,x));
+                matrix.PrintMatrix((y, x));
                 Thread.Sleep(250);
             }
         }
     }
 }
 
-record PartNumber((int y, int x) Start, string Number)
+public record PartNumber((int y, int x) Start, string Number)
 {
     public string Number { get; set; } = Number;
+    public (int y, int x) End => (Start.y, Start.x + Number.Length - 1);
 }
+
+public record Gear(int y, int x);
 
 public class Solution : ISolution
 {
     public string Solve(string input, Level level)
     {
         var schematic = GetSchematic(input);
+        var candidateNumbers = GetNumbers(schematic);
 
-        var numbers = GetNumbers(schematic);
+        if (level == Level.PartOne)
+        {
+            var partNumbers = candidateNumbers.Where(IsPartNumber);
 
-        var partNumbers = numbers.Where(IsPartNumber);
-        
-        return partNumbers
-            .Select(pn => int.Parse(pn.Number))
+            return partNumbers
+                .Select(pn => int.Parse(pn.Number))
+                .Sum()
+                .ToString();
+        }
+
+        var gears = new Dictionary<Gear, List<PartNumber>>(); 
+
+        foreach (var pn in candidateNumbers)
+        {
+            foreach (var g in GetAdjacentGears(pn, schematic))
+            {
+                if (!gears.ContainsKey(g))
+                    gears[g] = [];
+
+                gears[g].Add(pn);
+            }
+        }
+
+        return gears
+            .Values
+            .Where(g => g.Count == 2)
+            .Select(g => int.Parse(g.First().Number) * int.Parse(g.Last().Number))
             .Sum()
             .ToString();
-        
+
+
         bool IsPartNumber(PartNumber pn)
         {
             for (var i = 0; i < pn.Number.Length; i++)
@@ -59,9 +86,10 @@ public class Solution : ISolution
                 if (IsConnectedToASymbol((y, x + i)))
                     return true;
             }
+
             return false;
         }
-        
+
         bool IsConnectedToASymbol((int y, int x) point)
         {
             var rows = schematic.GetLength(0);
@@ -71,9 +99,9 @@ public class Solution : ISolution
             {
                 for (var x = point.x - 1; x <= point.x + 1; x++)
                 {
-                    if (y < 0 || y >= rows || x < 0 || x >= columns) 
+                    if (y < 0 || y >= rows || x < 0 || x >= columns)
                         continue; // Out of bounds
-                    
+
                     var current = schematic[y, x];
                     if (IsSymbol(current))
                         return true;
@@ -82,52 +110,58 @@ public class Solution : ISolution
 
             return false;
         }
-        
     }
-    
+
+    private IEnumerable<Gear> GetAdjacentGears(PartNumber pn, char[,] schematic)
+    {
+        var rows = schematic.GetLength(0);
+        var columns = schematic.GetLength(1);
+
+        var startY = Math.Max(0, pn.Start.y - 1);
+        var endY = Math.Min(rows - 1, pn.Start.y + 1);
+
+        var startX = Math.Max(0, pn.Start.x - 1);
+        var endX = Math.Min(columns - 1, pn.End.x + 1);
+
+        for (var y = startY; y <= endY; y++)
+        {
+            for (var x = startX; x <= endX; x++)
+            {
+                if (schematic[y, x] == '*')
+                    yield return new Gear(y, x);
+            }
+        }
+    }
 
     private IEnumerable<PartNumber> GetNumbers(char[,] schematic)
     {
-        
-        var pns = new List<PartNumber>();
-        PartNumber pn = null;
-        
-        for (var y = 0; y < schematic.GetLength(0); y++)
+        var rows = schematic.GetLength(0);
+        var columns = schematic.GetLength(1);
+
+        for (var y = 0; y < rows; y++)
         {
-            for (var x = 0; x < schematic.GetLength(1); x++)
+            var x = 0;
+
+            while (x < columns)
             {
-                var current = schematic[y, x];
-                
-                if (!char.IsNumber(current) && pn == null) 
-                    continue;
-                
-                if (!char.IsNumber(current) && pn != null)
+                if (!char.IsDigit(schematic[y, x]))
                 {
-                    pns.Add(pn);
-                    pn = null;
+                    x++;
                     continue;
                 }
 
-                if (char.IsNumber(current) && pn == null)
+                var startX = x;
+                var number = "";
+
+                while (x < columns && char.IsDigit(schematic[y, x]))
                 {
-                    pn = new PartNumber((y, x), current.ToString());
-                    continue;
+                    number += schematic[y, x];
+                    x++;
                 }
 
-                if (char.IsNumber(current) && pn != null)
-                {
-                    pn.Number += current.ToString();
-                }
+                yield return new PartNumber((y, startX), number);
             }
         }
-
-        if (pn != null) // If schematic's last tile contained a number
-        {
-            pns.Add(pn); // Capture the last part number.
-            pn = null;
-        }
-
-        return pns;
     }
 
     bool IsSymbol(char c)
@@ -141,7 +175,7 @@ public class Solution : ISolution
     {
         var rows = input.Split('\n');
         var schematic = new char[rows.Length, rows[0].Length];
-        
+
         for (var y = 0; y < rows.Length; y++)
         {
             for (var x = 0; x < rows[y].Length; x++)
@@ -149,6 +183,7 @@ public class Solution : ISolution
                 schematic[y, x] = rows[y][x];
             }
         }
+
         return schematic;
     }
 }
