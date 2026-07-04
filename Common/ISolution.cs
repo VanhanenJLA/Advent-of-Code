@@ -1,6 +1,4 @@
-using Common;
-
-namespace Advent_of_Code;
+namespace Common;
 
 public interface ISolution
 {
