@@ -30,6 +30,8 @@ public static class Program
         rootCommand.AddCommand(new SyncCommand());
         rootCommand.AddCommand(new RemoveCommand());
         rootCommand.AddCommand(new SubmitCommand());
+        rootCommand.AddCommand(new SolveCommand());
+        rootCommand.AddCommand(new SolveSubmitCommand());
 
         var builder = new CommandLineBuilder(rootCommand)
             .UseHost(_ => Host.CreateDefaultBuilder(args), hostBuilder =>
@@ -38,6 +40,7 @@ public static class Program
                 {
                     // services.AddHttpClient();
                     services.AddTransient<IPuzzleEngine, PuzzleEngine>();
+                    services.AddTransient<ISolutionResolver, SolutionResolver>();
                     services.AddTransient<AdventOfCodeAPI>(provider =>
                     {
                         var path = GetCookieFilePath();
@@ -64,6 +67,8 @@ public static class Program
                 hostBuilder.UseCommandHandler<SyncCommand, SyncCommand.Handler>();
                 hostBuilder.UseCommandHandler<RemoveCommand, RemoveCommand.Handler>();
                 hostBuilder.UseCommandHandler<SubmitCommand, SubmitCommand.Handler>();
+                hostBuilder.UseCommandHandler<SolveCommand, SolveCommand.Handler>();
+                hostBuilder.UseCommandHandler<SolveSubmitCommand, SolveSubmitCommand.Handler>();
             })
             .UseDefaults()
             .Build();

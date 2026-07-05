@@ -69,6 +69,18 @@ Submit an answer:
 dotnet run --project CLI -- submit 12345 --year 2025 --day 1 --level PartOne
 ```
 
+Solve with real input:
+
+```pwsh
+dotnet run --project CLI -- solve --year 2025 --day 1 --level PartOne
+```
+
+Solve with real input and submit the computed answer:
+
+```pwsh
+dotnet run --project CLI -- solve-submit --year 2025 --day 1 --level PartOne
+```
+
 Remove scaffolded files for a day:
 
 ```pwsh
