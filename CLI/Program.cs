@@ -32,6 +32,7 @@ public static class Program
         rootCommand.AddCommand(new SubmitCommand());
         rootCommand.AddCommand(new SolveCommand());
         rootCommand.AddCommand(new SolveSubmitCommand());
+        rootCommand.AddCommand(new StatusCommand());
 
         var builder = new CommandLineBuilder(rootCommand)
             .UseHost(_ => Host.CreateDefaultBuilder(args), hostBuilder =>
@@ -69,6 +70,7 @@ public static class Program
                 hostBuilder.UseCommandHandler<SubmitCommand, SubmitCommand.Handler>();
                 hostBuilder.UseCommandHandler<SolveCommand, SolveCommand.Handler>();
                 hostBuilder.UseCommandHandler<SolveSubmitCommand, SolveSubmitCommand.Handler>();
+                hostBuilder.UseCommandHandler<StatusCommand, StatusCommand.Handler>();
             })
             .UseDefaults()
             .Build();

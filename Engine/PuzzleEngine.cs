@@ -12,6 +12,7 @@ public interface IPuzzleEngine
     Task<bool> SubmitAnswer(string answer, (int year, int day) options, Level level = Level.PartOne);
     Task<bool> Start((int year, int day) options);
     Task<IReadOnlyList<int>> SyncYear(int year, bool forceRefresh = false);
+    Task<IReadOnlyList<RemotePuzzleStatus>> GetRemoteStatus(int year);
     Task<bool> Unstart((int year, int? day) options);
     HtmlNodeCollection ParseInstructions(string content);
 }
@@ -61,7 +62,7 @@ public class PuzzleEngine : IPuzzleEngine
             .EnumerateDirectories(yearDirectory)
             .Select(Path.GetFileName)
             .Where(name => int.TryParse(name, out _))
-            .Select(int.Parse)
+            .Select(name => int.Parse(name!))
             .OrderBy(day => day)
             .Where(day => File.Exists(Path.Combine(yearDirectory, day.ToString(), SolutionFileName)))
             .ToArray();
@@ -73,6 +74,12 @@ public class PuzzleEngine : IPuzzleEngine
         }
 
         return days;
+    }
+
+    public async Task<IReadOnlyList<RemotePuzzleStatus>> GetRemoteStatus(int year)
+    {
+        var calendar = await api.GetCalendar(year);
+        return RemotePuzzleStatusParser.ParseCalendar(calendar, year);
     }
 
     public async Task<bool> Unstart((int year, int? day) options)

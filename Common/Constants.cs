@@ -20,5 +20,8 @@ public static class Constants
     public const string CorrectAnswerResponse = "That's the right answer";
     public const string TooLow = "your answer is too low";
     public const string TooHigh = "your answer is too high";
+
+    public const string CalendarCompleteClass = "calendar-complete";
+    public const string CalendarVeryCompleteClass = "calendar-verycomplete";
     
 }

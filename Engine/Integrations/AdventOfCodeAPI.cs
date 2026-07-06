@@ -14,6 +14,7 @@ public class AdventOfCodeAPI
 
     public async Task<string> GetInput((int year, int day) options) => await Get(options, true);
     public async Task<string> GetInstructions((int year, int day) options) => await Get(options);
+    public async Task<string> GetCalendar(int year) => await Get($"{year}");
 
     private async Task<string> Get((int year, int day) options, bool input = false)
     {
@@ -21,6 +22,11 @@ public class AdventOfCodeAPI
         var url = $"{year}/day/{day}";
         if (input) url += "/input";
 
+        return await Get(url);
+    }
+
+    private async Task<string> Get(string url)
+    {
         var response = await _client.GetAsync(url);
         response.EnsureSuccessStatusCode();
 
