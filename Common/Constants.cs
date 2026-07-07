@@ -23,5 +23,9 @@ public static class Constants
 
     public const string CalendarCompleteClass = "calendar-complete";
     public const string CalendarVeryCompleteClass = "calendar-verycomplete";
+    public const string EventListEventClass = "eventlist-event";
+    public const string StarCountClass = "star-count";
+    public const int DayStarCapacity = 2;
+    public const int EventStarCapacity = 50;
     
 }

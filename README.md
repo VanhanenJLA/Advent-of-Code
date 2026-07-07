@@ -57,12 +57,20 @@ Sync inputs and instructions for all existing solutions in a year:
 dotnet run --project CLI -- sync --year 2025
 ```
 
-Show local solution status, optionally merged with Advent of Code stars from the authenticated calendar:
+Show local repository status:
 
 ```pwsh
+dotnet run --project CLI -- status
 dotnet run --project CLI -- status --year 2025
-dotnet run --project CLI -- status --year 2025 --remote
-dotnet run --project CLI -- status --year 2025 --day 1 --remote
+dotnet run --project CLI -- status --year 2025 --day 1
+```
+
+Show Advent of Code stars from the authenticated events/calendar pages:
+
+```pwsh
+dotnet run --project CLI -- stars
+dotnet run --project CLI -- stars --year 2025
+dotnet run --project CLI -- stars --year 2025 --day 1
 ```
 
 Fetch instructions again and ignore the local cache:

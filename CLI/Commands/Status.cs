@@ -2,7 +2,6 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Text.RegularExpressions;
 using Common;
-using Engine;
 using Microsoft.Extensions.Logging;
 using Spectre.Console;
 using static Common.Constants;
@@ -12,87 +11,105 @@ namespace CLI;
 
 public class StatusCommand : Command
 {
-    public StatusCommand() : base("status", "Show local puzzle progress and optional remote Advent of Code stars")
+    public StatusCommand() : base("status", "Show local repository puzzle status")
     {
         AddOption(new Option<int?>(["--year", "-y"], "Year to inspect."));
         AddOption(new Option<int?>(["--day", "-d"], "Day to inspect."));
-        AddOption(new Option<bool>(["--remote", "-r"], () => false, "Fetch Advent of Code calendar status."));
     }
 
     public new class Handler : ICommandHandler
     {
-        private readonly IPuzzleEngine _puzzleEngine;
         private readonly ILogger<Handler> _logger;
 
         public int? Year { get; set; }
         public int? Day { get; set; }
-        public bool Remote { get; set; }
 
-        public Handler(IPuzzleEngine puzzleEngine, ILogger<Handler> logger)
+        public Handler(ILogger<Handler> logger)
         {
-            _puzzleEngine = puzzleEngine;
             _logger = logger;
         }
 
-        public async Task<int> InvokeAsync(InvocationContext context)
+        public Task<int> InvokeAsync(InvocationContext context)
         {
             try
             {
-                var year = Year ?? PuzzleCommandDefaults.Resolve(null, null).year;
                 if (Day is < 1 or > 25)
                 {
                     AnsiConsole.MarkupLine("[red]Error: --day must be between 1 and 25.[/]");
-                    return 1;
+                    return Task.FromResult(1);
                 }
 
-                var localStatuses = LocalPuzzleStatusReader.Read(year, Day);
-                var remoteStatuses = await GetRemoteStatuses(year);
-                if (remoteStatuses is null)
-                    return 1;
+                if (!Year.HasValue && !Day.HasValue)
+                    return Task.FromResult(RenderTopLevelStatus());
 
-                var rows = BuildRows(year, Day, localStatuses, remoteStatuses);
+                var year = Year ?? PuzzleCommandDefaults.Resolve(null, null).year;
+                var localStatuses = LocalPuzzleStatusReader.Read(year, Day);
+                var rows = BuildRows(year, Day, localStatuses);
                 if (rows.Count == 0)
                 {
                     AnsiConsole.MarkupLine($"[yellow]No local solutions found for {year}.[/]");
-                    return 0;
+                    return Task.FromResult(0);
                 }
 
                 Render(year, rows);
-                return 0;
+                return Task.FromResult(0);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error reading puzzle status");
                 AnsiConsole.WriteException(ex);
-                return 1;
+                return Task.FromResult(1);
             }
         }
 
-        private async Task<IReadOnlyDictionary<int, int>?> GetRemoteStatuses(int year)
+        private int RenderTopLevelStatus()
         {
-            if (!Remote)
-                return new Dictionary<int, int>();
-
-            var cookiePath = GetCookieFilePath();
-            if (!File.Exists(cookiePath))
+            var localStatusesByYear = LocalPuzzleStatusReader.ReadAllYears();
+            var rows = localStatusesByYear
+                .Select(item => LocalYearStatusRow.From(item.Key, item.Value))
+                .OrderByDescending(row => row.Year)
+                .ToArray();
+            if (rows.Length == 0)
             {
-                AnsiConsole.MarkupLine("[red]Error: Session cookie not found.[/]");
-                AnsiConsole.MarkupLine("Please run [yellow]aoc config --cookie <value>[/] first.");
-                return null;
+                AnsiConsole.MarkupLine("[yellow]No local solutions found.[/]");
+                return 0;
             }
 
-            var statuses = await AnsiConsole.Status()
-                .StartAsync($"Fetching Advent of Code {year} calendar...", async _ =>
-                    await _puzzleEngine.GetRemoteStatus(year));
+            RenderYearSummary(rows);
+            return 0;
+        }
 
-            return statuses.ToDictionary(status => status.Day, status => status.Stars);
+        private void RenderYearSummary(IReadOnlyList<LocalYearStatusRow> rows)
+        {
+            var table = new Table()
+                .Title("Advent of Code local status")
+                .RoundedBorder();
+
+            table.AddColumn("Year");
+            table.AddColumn("Status");
+            table.AddColumn("Solns");
+            table.AddColumn("Input");
+            table.AddColumn("Instr");
+            table.AddColumn("Notes");
+
+            foreach (var row in rows)
+            {
+                table.AddRow(
+                    row.Year.ToString(),
+                    Markup.Escape(row.Status),
+                    row.SolutionDays.ToString(),
+                    row.InputDays.ToString(),
+                    row.InstructionDays.ToString(),
+                    Markup.Escape(row.Notes));
+            }
+
+            AnsiConsole.Write(table);
         }
 
         private IReadOnlyList<PuzzleStatusRow> BuildRows(
             int year,
             int? day,
-            IReadOnlyList<LocalPuzzleStatus> localStatuses,
-            IReadOnlyDictionary<int, int> remoteStatuses)
+            IReadOnlyList<LocalPuzzleStatus> localStatuses)
         {
             var localByDay = localStatuses.ToDictionary(status => status.Day);
             var days = new SortedSet<int>();
@@ -105,20 +122,13 @@ public class StatusCommand : Command
             {
                 foreach (var status in localStatuses)
                     days.Add(status.Day);
-
-                if (Remote)
-                {
-                    foreach (var remoteDay in remoteStatuses.Keys)
-                        days.Add(remoteDay);
-                }
             }
 
             return days
                 .Select(currentDay =>
                 {
                     var local = localByDay.GetValueOrDefault(currentDay) ?? LocalPuzzleStatus.Missing(currentDay);
-                    var remoteStars = Remote ? remoteStatuses.GetValueOrDefault(currentDay, 0) : (int?)null;
-                    return new PuzzleStatusRow(year, currentDay, local, remoteStars);
+                    return new PuzzleStatusRow(year, currentDay, local);
                 })
                 .ToArray();
         }
@@ -131,8 +141,6 @@ public class StatusCommand : Command
 
             table.AddColumn("Year");
             table.AddColumn("Day");
-            if (Remote)
-                table.AddColumn("Remote");
             table.AddColumn("Soln");
             table.AddColumn("Input");
             table.AddColumn("Instr");
@@ -148,15 +156,12 @@ public class StatusCommand : Command
                     row.Day.ToString("D2")
                 };
 
-                if (Remote)
-                    cells.Add(FormatRemoteStars(row.RemoteStars ?? 0));
-
                 cells.Add(FormatBool(row.Local.HasSolution));
                 cells.Add(FormatBool(row.Local.HasInput));
                 cells.Add(FormatBool(row.Local.HasInstructions));
                 cells.Add(FormatPart(row.Local.PartOne));
                 cells.Add(FormatPart(row.Local.PartTwo));
-                cells.Add(Markup.Escape(BuildNotes(row)));
+                cells.Add(Markup.Escape(string.Join("; ", row.Local.Notes)));
 
                 table.AddRow(cells.ToArray());
             }
@@ -164,33 +169,13 @@ public class StatusCommand : Command
             AnsiConsole.Write(table);
         }
 
-        private static string BuildNotes(PuzzleStatusRow row)
-        {
-            var notes = row.Local.Notes.ToList();
-
-            if (row.RemoteStars >= 1 && row.Local.PartOne != LocalPartStatus.AnswerRecorded)
-                notes.Add("P1 answer missing");
-
-            if (row.RemoteStars >= 2 && row.Local.PartTwo != LocalPartStatus.AnswerRecorded)
-                notes.Add("P2 answer missing");
-
-            return string.Join("; ", notes);
-        }
-
-        private static string FormatRemoteStars(int stars) => stars switch
-        {
-            0 => "[grey]0/2[/]",
-            1 => "[yellow]1/2[/]",
-            _ => "[green]2/2[/]"
-        };
-
         private static string FormatBool(bool value) => value
             ? "[green]yes[/]"
             : "[red]no[/]";
 
         private static string FormatPart(LocalPartStatus status) => status switch
         {
-            LocalPartStatus.AnswerRecorded => "[green]answer[/]",
+            LocalPartStatus.AnswerRecorded => "[green]recorded[/]",
             LocalPartStatus.ExampleOnly => "[yellow]example[/]",
             LocalPartStatus.Todo => "[yellow]TBD[/]",
             LocalPartStatus.Commented => "[yellow]commented[/]",
@@ -202,7 +187,95 @@ public class StatusCommand : Command
     }
 }
 
-internal record PuzzleStatusRow(int Year, int Day, LocalPuzzleStatus Local, int? RemoteStars);
+internal record LocalYearStatusRow(
+    int Year,
+    string Status,
+    int SolutionDays,
+    int InputDays,
+    int InstructionDays,
+    string Notes)
+{
+    public static LocalYearStatusRow From(int year, IReadOnlyList<LocalPuzzleStatus> localStatuses)
+    {
+        var solutionDays = localStatuses.Count(status => status.HasSolution);
+        var inputDays = localStatuses.Count(status => status.HasInput);
+        var instructionDays = localStatuses.Count(status => status.HasInstructions);
+        var status = InferStatus(localStatuses);
+        var notes = BuildNotes(localStatuses);
+        return new LocalYearStatusRow(
+            year,
+            status,
+            solutionDays,
+            inputDays,
+            instructionDays,
+            notes);
+    }
+
+    private static string InferStatus(IReadOnlyList<LocalPuzzleStatus> localStatuses)
+    {
+        if (localStatuses.Count == 0)
+            return "none";
+
+        var solutionStatuses = localStatuses
+            .Where(status => status.HasSolution)
+            .ToArray();
+
+        if (solutionStatuses.Length == 0)
+            return "cached";
+
+        if (solutionStatuses.Any(status =>
+                status.PartOne == LocalPartStatus.NotImplemented ||
+                status.PartTwo == LocalPartStatus.NotImplemented))
+            return "not implemented";
+
+        if (solutionStatuses.Any(status =>
+                status.PartOne is LocalPartStatus.Todo or LocalPartStatus.Commented or LocalPartStatus.Missing ||
+                status.PartTwo is LocalPartStatus.Todo or LocalPartStatus.Commented or LocalPartStatus.Missing))
+            return "in progress";
+
+        return "recorded";
+    }
+
+    private static string BuildNotes(IReadOnlyList<LocalPuzzleStatus> localStatuses)
+    {
+        var solutionStatuses = localStatuses
+            .Where(status => status.HasSolution)
+            .ToArray();
+        var todoParts = CountParts(solutionStatuses, LocalPartStatus.Todo);
+        var commentedParts = CountParts(solutionStatuses, LocalPartStatus.Commented);
+        var missingParts = CountParts(solutionStatuses, LocalPartStatus.Missing);
+        var noSolutionDays = localStatuses.Count(status => !status.HasSolution);
+        var notImplementedDays = solutionStatuses.Count(status =>
+            status.PartOne == LocalPartStatus.NotImplemented ||
+            status.PartTwo == LocalPartStatus.NotImplemented);
+
+        var notes = new List<string>();
+        if (noSolutionDays > 0)
+            notes.Add($"{noSolutionDays} no soln");
+
+        if (todoParts > 0)
+            notes.Add($"{todoParts} TBD");
+
+        if (commentedParts > 0)
+            notes.Add($"{commentedParts} commented");
+
+        if (missingParts > 0)
+            notes.Add($"{missingParts} missing");
+
+        if (notImplementedDays > 0)
+            notes.Add($"{notImplementedDays} not impl");
+
+        return string.Join("; ", notes);
+    }
+
+    private static int CountParts(IReadOnlyList<LocalPuzzleStatus> localStatuses, LocalPartStatus status) =>
+        localStatuses.Sum(local => Count(local.PartOne, status) + Count(local.PartTwo, status));
+
+    private static int Count(LocalPartStatus actual, LocalPartStatus expected) =>
+        actual == expected ? 1 : 0;
+}
+
+internal record PuzzleStatusRow(int Year, int Day, LocalPuzzleStatus Local);
 
 internal record LocalPuzzleStatus(
     int Day,
@@ -238,6 +311,21 @@ internal static class LocalPuzzleStatusReader
     private static readonly Regex RealAnswerPattern = new(
         @"InlineData\s*\(\s*null\s*,\s*""(?!TBD"")[^""]+""",
         RegexOptions.Compiled | RegexOptions.Singleline);
+
+    public static IReadOnlyDictionary<int, IReadOnlyList<LocalPuzzleStatus>> ReadAllYears()
+    {
+        var solutionsRoot = GetSolutionsProjectRootDirectory();
+        if (!Directory.Exists(solutionsRoot))
+            return new Dictionary<int, IReadOnlyList<LocalPuzzleStatus>>();
+
+        return Directory
+            .EnumerateDirectories(solutionsRoot)
+            .Select(directory => Path.GetFileName(directory))
+            .Where(name => int.TryParse(name, out _))
+            .Select(name => int.Parse(name!))
+            .OrderByDescending(year => year)
+            .ToDictionary(year => year, year => Read(year, null));
+    }
 
     public static IReadOnlyList<LocalPuzzleStatus> Read(int year, int? day)
     {

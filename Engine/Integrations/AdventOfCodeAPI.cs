@@ -15,6 +15,7 @@ public class AdventOfCodeAPI
     public async Task<string> GetInput((int year, int day) options) => await Get(options, true);
     public async Task<string> GetInstructions((int year, int day) options) => await Get(options);
     public async Task<string> GetCalendar(int year) => await Get($"{year}");
+    public async Task<string> GetEvents() => await Get("events");
 
     private async Task<string> Get((int year, int day) options, bool input = false)
     {

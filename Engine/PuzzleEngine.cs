@@ -13,6 +13,7 @@ public interface IPuzzleEngine
     Task<bool> Start((int year, int day) options);
     Task<IReadOnlyList<int>> SyncYear(int year, bool forceRefresh = false);
     Task<IReadOnlyList<RemotePuzzleStatus>> GetRemoteStatus(int year);
+    Task<RemoteEventsStatus> GetRemoteEventStatus();
     Task<bool> Unstart((int year, int? day) options);
     HtmlNodeCollection ParseInstructions(string content);
 }
@@ -80,6 +81,12 @@ public class PuzzleEngine : IPuzzleEngine
     {
         var calendar = await api.GetCalendar(year);
         return RemotePuzzleStatusParser.ParseCalendar(calendar, year);
+    }
+
+    public async Task<RemoteEventsStatus> GetRemoteEventStatus()
+    {
+        var events = await api.GetEvents();
+        return RemoteEventStatusParser.ParseEvents(events);
     }
 
     public async Task<bool> Unstart((int year, int? day) options)
