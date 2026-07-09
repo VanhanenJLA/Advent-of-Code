@@ -13,8 +13,8 @@ public class StatusCommand : Command
 {
     public StatusCommand() : base("status", "Show local repository puzzle status")
     {
-        AddOption(new Option<int?>(["--year", "-y"], "Year to inspect."));
-        AddOption(new Option<int?>(["--day", "-d"], "Day to inspect."));
+        AddOption(PuzzleCommandOptions.OptionalYear("Year to inspect."));
+        AddOption(PuzzleCommandOptions.OptionalDay("Day to inspect."));
     }
 
     public new class Handler : ICommandHandler

@@ -11,21 +11,9 @@ public class SubmitCommand : Command
 {
     public SubmitCommand() : base("submit", "Submit a puzzle answer")
     {
-        var dayOption = new Option<int>(
-            ["--day", "-d"],
-            "Day of the puzzle.");
-        AddOption(dayOption);
-
-        var yearOption = new Option<int>(
-            ["--year", "-y"],
-            "Year of the puzzle.");
-        AddOption(yearOption);
-
-        var levelOption = new Option<Level>(
-            ["--level", "-l"],
-            () => Level.PartOne,
-            "Level to submit (PartOne or PartTwo).");
-        AddOption(levelOption);
+        AddOption(PuzzleCommandOptions.RequiredDay("Day of the puzzle."));
+        AddOption(PuzzleCommandOptions.RequiredYear("Year of the puzzle."));
+        AddOption(PuzzleCommandOptions.PuzzleLevel("Level to submit (PartOne or PartTwo)."));
 
         var answerArgument = new Argument<string>(
             "answer",

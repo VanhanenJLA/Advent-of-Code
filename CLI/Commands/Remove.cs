@@ -11,21 +11,10 @@ public class RemoveCommand : Command
     public RemoveCommand() : base("remove", "Remove solution files for a puzzle or an entire year")
     {
         AddAlias("unstart");
-        
-        var dayOption = new Option<int?>(
-            ["--day", "-d"],
-            "Day to remove. If omitted, removes the entire year.");
-        AddOption(dayOption);
-        
-        var yearOption = new Option<int>(
-            ["--year", "-y"],
-            "Year to remove.");
-        AddOption(yearOption);
 
-        var forceOption = new Option<bool>(
-            ["--force", "-f"],
-            "Bypass confirmation prompt.");
-        AddOption(forceOption);
+        AddOption(PuzzleCommandOptions.OptionalDay("Day to remove. If omitted, removes the entire year."));
+        AddOption(PuzzleCommandOptions.RequiredYear("Year to remove."));
+        AddOption(PuzzleCommandOptions.Force("Bypass confirmation prompt."));
     }
 
     public new class Handler : ICommandHandler

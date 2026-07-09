@@ -11,9 +11,9 @@ public class SolveCommand : Command
 {
     public SolveCommand() : base("solve", "Solve a puzzle using the locally implemented solution and real input")
     {
-        AddOption(new Option<int?>(["--day", "-d"], "Day of the puzzle."));
-        AddOption(new Option<int?>(["--year", "-y"], "Year of the puzzle."));
-        AddOption(new Option<Level>(["--level", "-l"], () => Level.PartOne, "Level to solve (PartOne or PartTwo)."));
+        AddOption(PuzzleCommandOptions.OptionalDay("Day of the puzzle."));
+        AddOption(PuzzleCommandOptions.OptionalYear("Year of the puzzle."));
+        AddOption(PuzzleCommandOptions.PuzzleLevel("Level to solve (PartOne or PartTwo)."));
     }
 
     public new class Handler : ICommandHandler
@@ -70,9 +70,9 @@ public class SolveSubmitCommand : Command
 {
     public SolveSubmitCommand() : base("solve-submit", "Solve a puzzle using real input and submit the computed answer")
     {
-        AddOption(new Option<int?>(["--day", "-d"], "Day of the puzzle."));
-        AddOption(new Option<int?>(["--year", "-y"], "Year of the puzzle."));
-        AddOption(new Option<Level>(["--level", "-l"], () => Level.PartOne, "Level to submit (PartOne or PartTwo)."));
+        AddOption(PuzzleCommandOptions.OptionalDay("Day of the puzzle."));
+        AddOption(PuzzleCommandOptions.OptionalYear("Year of the puzzle."));
+        AddOption(PuzzleCommandOptions.PuzzleLevel("Level to submit (PartOne or PartTwo)."));
     }
 
     public new class Handler : ICommandHandler

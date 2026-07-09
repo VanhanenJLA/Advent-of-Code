@@ -10,16 +10,8 @@ public class SyncCommand : Command
 {
     public SyncCommand() : base("sync", "Sync puzzle inputs and instructions for all existing solutions in a year")
     {
-        var yearOption = new Option<int?>(
-            ["--year", "-y"],
-            "Year to sync.");
-        AddOption(yearOption);
-
-        var forceOption = new Option<bool>(
-            ["--force", "-f"],
-            () => false,
-            "Ignore cached files and retrieve fresh data from the API.");
-        AddOption(forceOption);
+        AddOption(PuzzleCommandOptions.OptionalYear("Year to sync."));
+        AddOption(PuzzleCommandOptions.Force("Ignore cached files and retrieve fresh data from the API."));
     }
 
     public new class Handler : ICommandHandler

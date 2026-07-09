@@ -12,8 +12,8 @@ public class StarsCommand : Command
 {
     public StarsCommand() : base("stars", "Show Advent of Code stars from the authenticated account")
     {
-        AddOption(new Option<int?>(["--year", "-y"], "Year to inspect."));
-        AddOption(new Option<int?>(["--day", "-d"], "Day to inspect."));
+        AddOption(PuzzleCommandOptions.OptionalYear("Year to inspect."));
+        AddOption(PuzzleCommandOptions.OptionalDay("Day to inspect."));
     }
 
     public new class Handler : ICommandHandler

@@ -19,24 +19,11 @@ public class GetInputCommand : Command
 {
     public GetInputCommand() : base("get", "Retrieve personal puzzle input")
     {
-
-        var dayOption = new Option<int>(
-            ["--day", "-d"],
-            "Day to retrieve.");
-        AddOption(dayOption);
-        
-        var yearOption = new Option<int>(
-            ["--year", "-y"],
-            "Year to retrieve.");
-        AddOption(yearOption);
-
+        AddOption(PuzzleCommandOptions.RequiredDay("Day to retrieve."));
+        AddOption(PuzzleCommandOptions.RequiredYear("Year to retrieve."));
 
         // (The global --json option is automatically available from the root command)
-        var forceOption = new Option<bool>(
-            ["--force", "-f"],
-            () => false,
-            "Ignore cached input and retrieve fresh data from the API.");
-        AddOption(forceOption);
+        AddOption(PuzzleCommandOptions.Force("Ignore cached input and retrieve fresh data from the API."));
     }
     
     public new class Handler : ICommandHandler

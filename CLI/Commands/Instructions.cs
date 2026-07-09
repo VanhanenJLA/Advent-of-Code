@@ -19,22 +19,9 @@ public class GetInstructionCommand : Command
 {
     public GetInstructionCommand() : base("get", "Retrieve instructions for a given date's puzzle")
     {
-
-        var dayOption = new Option<int>(
-            ["--day", "-d"],
-            "Day to retrieve.");
-        AddOption(dayOption);
-        
-        var yearOption = new Option<int>(
-            ["--year", "-y"],
-            "Year to retrieve.");
-        AddOption(yearOption);
-        
-        var forceOption = new Option<bool>(
-            ["--force", "-f"],
-            () => false,
-            "Ignore cached instructions and retrieve fresh data from the API.");
-        AddOption(forceOption);
+        AddOption(PuzzleCommandOptions.RequiredDay("Day to retrieve."));
+        AddOption(PuzzleCommandOptions.RequiredYear("Year to retrieve."));
+        AddOption(PuzzleCommandOptions.Force("Ignore cached instructions and retrieve fresh data from the API."));
         
         // (The global --json option is automatically available from the root command)
     }

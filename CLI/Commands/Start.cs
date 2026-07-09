@@ -10,15 +10,8 @@ public class StartCommand : Command
 {
     public StartCommand() : base("start", "Start solving a new puzzle (scaffold, fetch input, fetch instructions)")
     {
-        var dayOption = new Option<int>(
-            ["--day", "-d"],
-            "Day to start.");
-        AddOption(dayOption);
-        
-        var yearOption = new Option<int>(
-            ["--year", "-y"],
-            "Year to start.");
-        AddOption(yearOption);
+        AddOption(PuzzleCommandOptions.RequiredDay("Day to start."));
+        AddOption(PuzzleCommandOptions.RequiredYear("Year to start."));
     }
 
     public new class Handler : ICommandHandler
