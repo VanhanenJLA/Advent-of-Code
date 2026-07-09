@@ -13,7 +13,7 @@ public class SolveCommand : Command
     {
         AddOption(PuzzleCommandOptions.OptionalDay("Day of the puzzle."));
         AddOption(PuzzleCommandOptions.OptionalYear("Year of the puzzle."));
-        AddOption(PuzzleCommandOptions.PuzzleLevel("Level to solve (PartOne or PartTwo)."));
+        AddOption(PuzzleCommandOptions.PuzzleLevel("Part to solve (1, 2, PartOne, or PartTwo)."));
     }
 
     public new class Handler : ICommandHandler
@@ -72,7 +72,7 @@ public class SolveSubmitCommand : Command
     {
         AddOption(PuzzleCommandOptions.OptionalDay("Day of the puzzle."));
         AddOption(PuzzleCommandOptions.OptionalYear("Year of the puzzle."));
-        AddOption(PuzzleCommandOptions.PuzzleLevel("Level to submit (PartOne or PartTwo)."));
+        AddOption(PuzzleCommandOptions.PuzzleLevel("Part to submit (1, 2, PartOne, or PartTwo)."));
     }
 
     public new class Handler : ICommandHandler

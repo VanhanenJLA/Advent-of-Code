@@ -13,7 +13,7 @@ public class SubmitCommand : Command
     {
         AddOption(PuzzleCommandOptions.RequiredDay("Day of the puzzle."));
         AddOption(PuzzleCommandOptions.RequiredYear("Year of the puzzle."));
-        AddOption(PuzzleCommandOptions.PuzzleLevel("Level to submit (PartOne or PartTwo)."));
+        AddOption(PuzzleCommandOptions.PuzzleLevel("Part to submit (1, 2, PartOne, or PartTwo)."));
 
         var answerArgument = new Argument<string>(
             "answer",
