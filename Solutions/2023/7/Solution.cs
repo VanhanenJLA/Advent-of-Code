@@ -8,8 +8,9 @@ public class Tests : TestBase
 
     [Theory]
     [InlineData(null, "249638405", Level.PartOne)]
-    [InlineData(null, "TBD", Level.PartTwo)]
+    [InlineData(null, "249776650", Level.PartTwo)]
     [InlineData(Example, "6440", Level.PartOne)]
+    [InlineData(Example, "5905", Level.PartTwo)]
     public override void Should_solve_correct_answer(string? input, string expected, Level level)
     {
         DefaultTest(input, expected, level);
@@ -20,36 +21,34 @@ public class Solution : ISolution
 {
     public string Solve(string input, Level level)
     {
-        return Parse(input)
-            .Order(new HandComparer())
+        return Parse(input, level)
+            .Order(new HandComparer(level))
             .Select((hand, index) => hand.Bid * (index + 1))
             .Sum()
             .ToString();
     }
 
-    private static IEnumerable<Hand> Parse(string input)
+    private static IEnumerable<Hand> Parse(string input, Level level)
     {
-        return input.Split('\n')
-            .Select(ParseHand);
+        return input.Split('\n', StringSplitOptions.RemoveEmptyEntries)
+            .Select(row => ParseHand(row, level));
     }
 
-    private static Hand ParseHand(string row)
+    private static Hand ParseHand(string row, Level level)
     {
         var parts = row.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         var cards = parts.First();
         var bid = int.Parse(parts.Last());
         IReadOnlyList<CardType> cardTypes = cards.Select(ParseCard).ToList();
-        var handType = FindHandType(cardTypes);
+        var handType = FindHandType(cardTypes, level);
         return new Hand(cardTypes, bid, handType);
     }
 
-    private static HandType FindHandType(IEnumerable<CardType> cards)
+    private static HandType FindHandType(IReadOnlyList<CardType> cards, Level level)
     {
-        var counts = cards
-            .GroupBy(card => card)
-            .Select(group => group.Count())
-            .OrderDescending()
-            .ToArray();
+        var counts = level == Level.PartTwo
+            ? CountCardsWithJokers(cards)
+            : CountCards(cards);
 
         return counts switch
         {
@@ -62,6 +61,28 @@ public class Solution : ISolution
             [1, 1, 1, 1, 1] => HandType.HighCard,
             _ => throw new ArgumentOutOfRangeException(nameof(cards), cards, null)
         };
+    }
+
+    private static int[] CountCards(IEnumerable<CardType> cards)
+    {
+        return cards
+            .GroupBy(card => card)
+            .Select(group => group.Count())
+            .OrderDescending()
+            .ToArray();
+    }
+
+    private static int[] CountCardsWithJokers(IReadOnlyList<CardType> cards)
+    {
+        var jokerCount = cards.Count(card => card == CardType.Jack);
+        var jokerless = cards.Where(card => card != CardType.Jack);
+        var counts = CountCards(jokerless);
+
+        if (jokerCount == 5)
+            return [5];
+
+        counts[0] += jokerCount;
+        return counts;
     }
     
     public enum CardType
@@ -116,7 +137,7 @@ public class Solution : ISolution
         HandType Type
     );
 
-    private class HandComparer : IComparer<Hand>
+    private class HandComparer(Level level) : IComparer<Hand>
     {
         public int Compare(Hand? x, Hand? y)
         {
@@ -130,12 +151,19 @@ public class Solution : ISolution
 
             for (var i = 0; i < x.Cards.Count; i++)
             {
-                var cardComparison = x.Cards[i].CompareTo(y.Cards[i]);
+                var cardComparison = GetCardRank(x.Cards[i]).CompareTo(GetCardRank(y.Cards[i]));
                 if (cardComparison != 0)
                     return cardComparison;
             }
 
             return 0;
+        }
+
+        private int GetCardRank(CardType card)
+        {
+            return level == Level.PartTwo && card == CardType.Jack
+                ? 1
+                : (int)card;
         }
     }
 }
